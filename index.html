@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html lang="en" style="  overflow: auto;scrollbar-width: none;-ms-overflow-style: none;">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PyCon JP 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Satoshi:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #ffffff;
+      color: #1a3156;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Anchor links glide, and land clear of the sticky nav */
+    html { scroll-padding-top: 100px; }
+    @media (prefers-reduced-motion: no-preference) {
+      html { scroll-behavior: smooth; }
+    }
+
+    /* Consistent keyboard focus ring across interactive elements */
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--red);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    /* Thin scroll-progress line pinned to the very top */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--red), #f4a7a2);
+      transform: scaleX(0);
+      transform-origin: left center;
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    /* ─── Design Tokens ────────────────────────────────────────── */
+    :root {
+      --red:       #e1363e;
+      --navy:      #1a3156;
+      --navy-wave: #1a2f55;
+      --bg-cream:  #fdf3f0;
+      --black-80:  rgba(0,0,0,0.8);
+      --black-60:  rgba(0,0,0,0.6);
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       HERO SECTION
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .hero {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Background image — full bleed, covers the hero area */
+    .hero__bg {
+      position: absolute;
+      inset: -13% 0 0 0;
+      width: 100%;
+      height: 115%;
+      background-image: url('assets/hero-background.png');
+      background-size: cover;
+      background-position: center top;
+      opacity: 0.70;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Nav ─────────────────────────────────────────────────── */
+    .nav {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 20px 48px;
+      width: 100%;
+      transition: background .25s ease, box-shadow .25s ease, padding .3s ease;
+    }
+
+    .nav--sticky {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding-top: 12px;
+      padding-bottom: 12px;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      z-index: 100;
+    }
+
+    .nav-placeholder {
+      height: 0;
+    }
+
+    .nav__logo {
+      width: 64px;
+      height: 64px;
+      flex-shrink: 0;
+      transition: width .3s ease, height .3s ease;
+    }
+    .nav__logo img { width: 100%; height: 100%; object-fit: contain; }
+    .nav--sticky .nav__logo { width: 48px; height: 48px; }
+
+    .nav__links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 43px;
+      list-style: none;
+    }
+    .nav__links a {
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+      transition: opacity .18s;
+    }
+    .nav__links a:hover { opacity: 0.7; }
+
+    .nav__right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 24px;
+    }
+
+    .nav__lang {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      padding: 3px;
+      background: rgba(0,0,0,0.06);
+      border-radius: 999px;
+      isolation: isolate;
+    }
+    /* Sliding white thumb that sits behind the active label */
+    .nav__lang-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: calc(50% - 3px);
+      height: calc(100% - 6px);
+      background: #fff;
+      border-radius: 999px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.14);
+      z-index: -1;
+      transition: transform .34s cubic-bezier(.34,1.45,.5,1);
+    }
+    .nav__lang[data-active="jp"] .nav__lang-thumb { transform: translateX(100%); }
+    .nav__lang button {
+      width: 46px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      text-align: center;
+      color: rgba(0,0,0,0.5);
+      background: transparent;
+      border: none;
+      padding: 5px 0;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: color .25s ease, transform .15s ease;
+    }
+    .nav__lang button:hover { color: rgba(0,0,0,0.8); }
+    .nav__lang button:active { transform: scale(0.92); }
+    .nav__lang button.active { color: var(--red); }
+    .nav__lang button.active:hover { color: var(--red); }
+
+    .btn-tickets {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--red);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      padding: 14px 32px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background .18s, transform .15s;
+      white-space: nowrap;
+    }
+    .btn-tickets:hover { background: #c9222a; transform: translateY(-1px); }
+
+    /* ── Hero body ──────────────────────────────────────────────── */
+    .hero__body {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      padding-top: 44px;
+    }
+
+    /* Announcement pill */
+    .hero__announcement {
+      display: inline-flex;
+      align-items: center;
+      background: #FAF3F0;
+      border: 1.5px solid #c9b1b0;
+      border-radius: 43px;
+      padding: 6px 18px;
+      font-size: 15px;
+      font-weight: 500;
+      color: #000;
+      margin-bottom: 48px;
+    }
+    .hero__announcement a {
+      color: var(--red);
+      text-decoration: none;
+      margin-left: 4px;
+    }
+    .hero__announcement a:hover { text-decoration: underline; }
+
+    /* PyCon JP logotype + 2026 year badge (single Figma "Logotype-group" asset) */
+    .hero__logotype {
+      width: clamp(320px, 40vw, 540px);
+      height: auto;
+      aspect-ratio: 466 / 176;
+      display: block;
+      margin: 0 auto 36px;
+    }
+
+    /* Location & date */
+    .hero__meta {
+      display: flex;
+      align-items: center;
+      gap: 48px;
+      margin-bottom: 0;
+    }
+    .hero__meta-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .hero__meta-icon {
+      width: 35.2px;
+      height: 35.2px;
+      flex-shrink: 0;
+    }
+    .hero__meta-icon img { width: 100%; height: 100%; object-fit: contain; }
+    .hero__meta-text {
+      font-size: 24.2px;
+      font-weight: 500;
+      color: var(--black-80);
+      letter-spacing: -0.01em;
+    }
+
+    /* Bottom wave + illustration */
+    .hero__bottom {
+      position: relative;
+      z-index: 4;
+      width: 100%;
+      margin-top: auto;
+      /* Overlap the About section by 2px so the navy SVG base and the navy
+         About block always share pixels at the seam. During the load
+         animation each element is its own compositor layer, and adjacent
+         layers round sub-pixel positions independently — without this
+         overlap a 1px cream gap (page-body) flickers through at the join. */
+      margin-bottom: -2px;
+      flex-shrink: 0;
+    }
+    .hero__bottom img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1516 / 308;
+      display: block;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       REST OF PAGE — solid cream bg
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .page-body {
+      position: relative;
+      background: #fff8f6;
+    }
+    /* Navy bridge across the hero-SVG → About seam. During the fused rise the
+       About box slides up from ~22px below, but the hero illustration above is
+       clipped by the hero's overflow:hidden and can't follow — opening a gap
+       that briefly exposes this cream background. This strip keeps that gap
+       navy so the two blue blocks read as one. It sits behind the hero SVG
+       (z-index:4) and the About block, so it's invisible except in the gap. */
+    .page-body::before {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: var(--navy);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Shared container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+
+    /* ── Section label ─────────────────────────────────────────── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 14px;
+    }
+
+    .news-dot {
+      color: var(--red);
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 2: About the Conference
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .section-about {
+      position: relative;
+      background: var(--navy);
+      padding-top: 110px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .section-about .container {
+      padding-bottom: 80px;
+      max-width: 980px;
+    }
+    .section-about__title {
+      font-size: 64px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin: 0 auto 32px;
+      max-width: 760px;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.25);
+    }
+    .section-about__title em {
+      font-style: normal;
+      color: #f4a7a2;
+    }
+    .section-about__rule {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin: 0 auto 40px;
+    }
+    .section-about__rule::before,
+    .section-about__rule::after {
+      content: '';
+      width: 88px;
+      height: 2px;
+      background: rgba(244,167,162);
+    }
+    .section-about__rule .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #f4a7a2;
+      flex-shrink: 0;
+    }
+    .section-about__text {
+      font-size: 19px;
+      font-weight: 450;
+      line-height: 1.8;
+      color: rgba(255,255,255);
+      margin-bottom: 26px;
+      max-width: 760px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .section-about__text:last-of-type { margin-bottom: 48px; }
+    .section-about__cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+    .btn-outline-light {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 1.5px solid rgba(255,255,255,0.5);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      padding: 14px 32px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background .18s, border-color .18s;
+      white-space: nowrap;
+    }
+    .btn-outline-light:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.8);
+    }
+    .section-about__wave,
+    .section-keynote__wave,
+    .section-news__wave,
+    .section-quicklinks__wave {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      margin-bottom: -1px;
+    }
+    .section-about__wave svg,
+    .section-keynote__wave svg,
+    .section-news__wave svg,
+    .section-quicklinks__wave svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 3: Keynote speakers
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .section-keynote {
+      padding: 96px 0 0;
+      background: #F9E4E0;
+      text-align: center;
+      position: relative;
+    }
+    .section-keynote .container {
+      padding-bottom: 100px;
+    }
+    .keynote-title {
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 22px;
+    }
+    .keynote-title .dot { color: var(--red); }
+    .keynote-sub {
+      font-size: 17px;
+      font-weight: 400;
+      color: rgba(0,0,0,0.6);
+      line-height: 1.6;
+      max-width: 520px;
+      margin: 0 auto 56px;
+    }
+
+    .speakers-grid {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+    .speaker-card {
+      background: #FBF3F0;
+      border: 1px solid rgba(26,49,86,0.08);
+      border-radius: 16px;
+      padding: 36px 28px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .speaker-photo-wrap {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .speaker-avatar {
+      width: 132px;
+      height: 132px;
+      border-radius: 50%;
+      background: #E8B4B1;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .speaker-avatar svg { width: 64px; height: 64px; fill: #FAF3F0;}
+    .speaker-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .speaker-leaf-badge {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 48.6px;
+      height: 48.6px;
+      border-radius: 50%;
+      background: #fff;
+      border: 0.5px solid var(--red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .speaker-leaf-badge-inner {
+      width: 28.8px;
+      height: 28.8px;
+      border-radius: 50%;
+      background: var(--red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .speaker-leaf-badge svg { width: 19.8px; height: 18.9px; fill: #fff; }
+    .speaker-info { width: 100%; }
+    .speaker-name {
+      font-size: 21px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+    .speaker-role {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--red);
+      min-height: 2.8em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+    .speaker-divider {
+      width: 28px;
+      height: 2px;
+      background: rgba(225,54,62,0.4);
+      border: none;
+      margin: 0 auto 14px;
+    }
+    .speaker-topic {
+      font-size: 15px;
+      font-weight: 400;
+      color: rgba(0,0,0,0.7);
+      line-height: 1.5;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 4: News & Announcements
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .section-news {
+      padding: 80px 0 0;
+      background: #FEF8F6;
+      position: relative;
+    }
+    .section-news .container {
+      padding-bottom: 64px;
+    }
+    .news-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 40px;
+    }
+    .news-header h2 {
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+    }
+    .news-header a {
+      color: var(--red);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-bottom: 1.5px solid var(--red);
+      padding-bottom: 2px;
+    }
+    .news-list { display: flex; flex-direction: column; gap: 0; }
+    .news-item {
+      display: grid;
+      grid-template-columns: 120px auto 1fr;
+      align-items: baseline;
+      gap: 32px;
+      padding: 22px 0;
+      border-bottom: 1px solid rgba(26,49,86,0.1);
+      text-decoration: none;
+      color: inherit;
+      transition: background .15s;
+    }
+    .news-item:first-child { border-top: 1px solid rgba(26,49,86,0.1); }
+    .news-item:hover .news-title { color: var(--red); }
+    .news-date {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(0,0,0,0.45);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .news-tag {
+      display: inline-block;
+      background: #fde8e8;
+      color: var(--red);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 2px;
+      white-space: nowrap;
+      justify-self: start;
+    }
+    .news-tag--blue { background: #e6ecf5; color: var(--navy); }
+    .news-tag--green { background: #e6f5ef; color: #1a6645; }
+    .news-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--navy);
+      line-height: 1.5;
+      transition: color .15s;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 5: Quick-links overview
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .section-quicklinks {
+      padding: 72px 0 0;
+      background: #FBF3F0;
+      position: relative;
+    }
+    .section-quicklinks .container {
+      padding-bottom: 80px;
+    }
+    .quicklinks-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .quicklink-card {
+      background: #fff;
+      border: 1.5px solid rgba(26,49,86,0.1);
+      border-radius: 8px;
+      padding: 36px 32px;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: border-color .18s, box-shadow .18s, transform .18s;
+    }
+    .quicklink-card:hover {
+      border-color: var(--red);
+      box-shadow: 0 4px 20px rgba(225,54,62,0.1);
+      transform: translateY(-2px);
+    }
+    .quicklink-icon {
+      width: 44px;
+      height: 44px;
+      background: #fde8e8;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .quicklink-icon svg { width: 22px; height: 22px; fill: var(--red); }
+    .quicklink-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: -0.01em;
+    }
+    .quicklink-desc {
+      font-size: 14px;
+      font-weight: 400;
+      color: rgba(0,0,0,0.6);
+      line-height: 1.65;
+    }
+    .quicklink-arrow {
+      margin-top: auto;
+      font-size: 20px;
+      color: var(--red);
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 5b: Sponsors
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .section-sponsors {
+      padding: 96px 0 0;
+      background: #ffffff;
+      text-align: center;
+      position: relative;
+    }
+    .section-timetable__divider {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      margin-bottom: -1px;
+    }
+    .section-timetable__divider svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .section-sponsors .container {
+      padding-bottom: 96px;
+    }
+    .sponsors-title {
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+      line-height: 1.2;
+    }
+    .sponsors-sub {
+      font-size: 17px;
+      font-weight: 400;
+      color: rgba(0,0,0,0.6);
+      line-height: 1.6;
+      max-width: 520px;
+      margin: 0 auto 64px;
+    }
+    .sponsor-tier {
+      margin-bottom: 56px;
+    }
+    .sponsor-tier:last-child {
+      margin-bottom: 0;
+    }
+    .sponsor-tier__label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 28px;
+    }
+    .sponsor-tier__label::before,
+    .sponsor-tier__label::after {
+      content: '';
+      width: 36px;
+      height: 1.5px;
+      background: rgba(225,54,62,0.35);
+    }
+    .sponsor-tier--gold .sponsor-tier__label { color: #c08a1f; }
+    .sponsor-tier--gold .sponsor-tier__label::before,
+    .sponsor-tier--gold .sponsor-tier__label::after { background: rgba(192,138,31,0.35); }
+    .sponsor-tier--peace .sponsor-tier__label { color: #1a6645; }
+    .sponsor-tier--peace .sponsor-tier__label::before,
+    .sponsor-tier--peace .sponsor-tier__label::after { background: rgba(26,102,69,0.35); }
+    .sponsor-tier--silver .sponsor-tier__label { color: #6b7686; }
+    .sponsor-tier--silver .sponsor-tier__label::before,
+    .sponsor-tier--silver .sponsor-tier__label::after { background: rgba(107,118,134,0.35); }
+
+    .sponsor-grid {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      justify-content: center;
+      gap: 24px;
+    }
+    .sponsor-card {
+      background: #fff;
+      border: 1.5px solid rgba(26,49,86,0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 36px;
+      text-decoration: none;
+      transition: border-color .18s, box-shadow .18s, transform .18s;
+    }
+    .sponsor-card:hover {
+      border-color: var(--red);
+      box-shadow: 0 8px 24px rgba(225,54,62,0.12);
+      transform: translateY(-2px);
+    }
+    .sponsor-card img {
+      max-width: 100%;
+      object-fit: contain;
+      filter: grayscale(15%);
+    }
+    .sponsor-tier--platinum .sponsor-card { width: 320px; height: 150px; padding: 36px 44px; }
+    .sponsor-tier--platinum .sponsor-card img { max-height: 80px; }
+    .sponsor-tier--gold .sponsor-card { width: 240px; height: 120px; }
+    .sponsor-tier--gold .sponsor-card img { max-height: 60px; }
+    .sponsor-tier--peace .sponsor-card { width: 220px; height: 110px; }
+    .sponsor-tier--peace .sponsor-card img { max-height: 52px; }
+    .sponsor-tier--silver .sponsor-card { width: 200px; height: 100px; }
+    .sponsor-tier--silver .sponsor-card img { max-height: 44px; }
+
+    .sponsors-cta {
+      margin-top: 64px;
+    }
+
+    @media (max-width: 600px) {
+      .sponsor-tier--platinum .sponsor-card,
+      .sponsor-tier--gold .sponsor-card,
+      .sponsor-tier--peace .sponsor-card,
+      .sponsor-tier--silver .sponsor-card { width: 100%; max-width: 280px; }
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SECTION 6: Timetable / Poster CTA
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .section-timetable {
+      background: #fdf0ee;
+      padding: 80px 0 0;
+      position: relative;
+    }
+    .section-timetable .container {
+      padding-bottom: 64px;
+    }
+    .section-timetable__wave {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      margin-bottom: -1px;
+    }
+    .section-timetable__wave img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .timetable-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+    }
+    .timetable-card {
+      background: #fff;
+      border-radius: 8px;
+      border: 1.5px solid rgba(26,49,86,0.1);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .timetable-card .section-label { margin-bottom: 0; }
+    .timetable-card h3 {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .timetable-card p {
+      font-size: 15px;
+      font-weight: 400;
+      color: rgba(0,0,0,0.65);
+      line-height: 1.7;
+    }
+    .timetable-card .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--red);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      padding: 13px 24px;
+      border-radius: 4px;
+      text-decoration: none;
+      align-self: flex-start;
+      margin-top: auto;
+      transition: background .18s, transform .15s;
+    }
+    .timetable-card .btn-primary:hover { background: #c9222a; transform: translateY(-1px); }
+    .timetable-card .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      border: 2px solid var(--navy);
+      color: var(--navy);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      padding: 11px 24px;
+      border-radius: 4px;
+      text-decoration: none;
+      align-self: flex-start;
+      margin-top: auto;
+      transition: background .18s, color .18s;
+    }
+    .timetable-card .btn-outline:hover { background: var(--navy); color: #fff; }
+
+    /* Venue card — single horizontal card with both locations side by side */
+    .venue-card {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border: 1.5px solid rgba(26,49,86,0.1);
+      border-radius: 8px;
+      padding: 32px 40px;
+      margin-top: 32px;
+    }
+    .venue-card__item {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      min-width: 0;
+    }
+    .venue-card__sep {
+      width: 1px;
+      align-self: stretch;
+      background: rgba(26,49,86,0.1);
+      margin: 0 40px;
+    }
+    .venue-card__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #eaeef4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .venue-card__icon svg { width: 22px; height: 22px; fill: var(--navy); }
+    .venue-card__icon--sprint { background: #fde8e8; }
+    .venue-card__icon--sprint svg { fill: var(--red); }
+    .venue-card__label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.4);
+      margin-bottom: 4px;
+    }
+    .venue-card__name {
+      display: block;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1.35;
+    }
+    @media (max-width: 760px) {
+      .venue-card { flex-direction: column; align-items: stretch; gap: 24px; }
+      .venue-card__sep { width: 100%; height: 1px; margin: 0; }
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────── */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.55);
+      padding: 72px 0 0;
+    }
+    footer .container {
+      max-width: none;
+      padding: 0 80px 0 106px;
+    }
+    .footer-top {
+      display: flex;
+      justify-content: flex-start;
+      gap: 48px;
+      padding-bottom: 56px;
+    }
+    .footer-brand {
+      max-width: 280px;
+      flex-shrink: 0;
+    }
+    .footer-logo { width: 220px; margin-bottom: 20px; }
+    .footer-logo img { width: 100%; display: block; }
+    .footer-tagline {
+      font-size: 15px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 24px;
+    }
+    .footer-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px 56px;
+      margin-left: auto;
+      justify-content: flex-end;
+    }
+    .footer-col h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #f2a98f;
+      margin-bottom: 18px;
+    }
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      list-style: none;
+    }
+    .footer-links a {
+      color: rgba(255,255,255,0.85);
+      font-size: 14px;
+      text-decoration: none;
+      transition: color .15s;
+    }
+    .footer-links a:hover { color: #fff; }
+
+    .footer-illustration {
+      width: 100%;
+      line-height: 0;
+    }
+    .footer-illustration img {
+      width: 100%;
+      display: block;
+    }
+
+    .footer-bottom {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 0;
+    }
+    .footer-copy { font-size: 14px; color: rgba(255,255,255,0.8); }
+    .footer-copy a { color: inherit; text-decoration: none; }
+    .footer-copy a:hover { color: #fff; text-decoration: underline; }
+    .footer-credit {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 14px;
+      color: rgba(255,255,255,0.8);
+      white-space: nowrap;
+    }
+    .footer-credit a {
+      color: inherit;
+      text-decoration: underline;
+    }
+    .footer-credit a:hover { color: #fff; }
+    .footer-legal {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+    .footer-legal a {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+    }
+    .footer-legal a:hover { color: #fff; }
+    .footer-legal-sep { color: rgba(255,255,255,0.3); }
+
+    .footer-social {
+      display: flex;
+      gap: 12px;
+    }
+    .footer-social a {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      transition: background .15s;
+    }
+    .footer-social a:hover { background: rgba(255,255,255,0.14); }
+    .footer-social svg { width: 16px; height: 16px; fill: rgba(255,255,255,0.85); }
+
+    @media (max-width: 900px) {
+      .footer-top { flex-direction: column; gap: 40px; }
+      .footer-nav { flex-wrap: wrap; gap: 32px; }
+    }
+    @media (max-width: 560px) {
+      .footer-bottom { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       MOTION — scroll reveals, micro-interactions, SVG accents
+       All entrance/looping motion is gated behind reduced-motion.
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    /* ── Always-on micro-interactions (hover/focus — safe for everyone) ── */
+
+    /* Animated underline on primary nav links */
+    .nav__links a { position: relative; }
+    .nav__links a::after {
+      content: '';
+      position: absolute;
+      left: 0; bottom: -5px;
+      width: 100%; height: 2px;
+      background: var(--red);
+      border-radius: 2px;
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform .28s cubic-bezier(.22,.61,.36,1);
+    }
+    .nav__links a:hover { opacity: 1; }
+    .nav__links a:hover::after,
+    .nav__links a:focus-visible::after { transform: scaleX(1); }
+
+    /* Announcement pill — arrow nudges on hover */
+    .hero__announcement a { display: inline-block; transition: transform .2s ease; }
+    .hero__announcement:hover a { transform: translateX(2px); }
+
+    /* Quick-link cards — arrow glides right */
+    .quicklink-arrow { transition: transform .28s cubic-bezier(.22,.61,.36,1); }
+    .quicklink-card:hover .quicklink-arrow { transform: translateX(8px); }
+
+    /* News rows — title slips right + a red marker fades in on hover */
+    .news-item { position: relative; }
+    .news-item::before {
+      content: '';
+      position: absolute;
+      left: -16px; top: 50%;
+      width: 4px; height: 0;
+      background: var(--red);
+      border-radius: 2px;
+      transform: translateY(-50%);
+      transition: height .3s cubic-bezier(.22,.61,.36,1);
+    }
+    .news-item:hover::before { height: 60%; }
+    .news-title { transition: color .15s, transform .28s cubic-bezier(.22,.61,.36,1); }
+    .news-item:hover .news-title { transform: translateX(6px); }
+
+    /* Speaker cards — lift + avatar zoom */
+    .speaker-card { transition: transform .3s cubic-bezier(.22,.61,.36,1), box-shadow .3s ease; }
+    .speaker-card:hover { transform: translateY(-5px); box-shadow: 0 16px 36px rgba(26,49,86,0.1); }
+    .speaker-avatar img { transition: transform .45s cubic-bezier(.22,.61,.36,1); }
+    .speaker-card:hover .speaker-avatar img { transform: scale(1.06); }
+    .speaker-leaf-badge { transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .speaker-card:hover .speaker-leaf-badge { transform: rotate(-8deg) scale(1.08); }
+
+    /* Sponsor logos — colour-in + gentle scale on hover */
+    .sponsor-card img { transition: filter .35s ease, transform .35s ease; }
+    .sponsor-card:hover img { filter: grayscale(0); transform: scale(1.05); }
+
+    /* Sticky nav slides down when it pins */
+    .nav--sticky { animation: navDrop .38s cubic-bezier(.22,.61,.36,1); }
+    @keyframes navDrop {
+      from { transform: translateY(-100%); }
+      to   { transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      /* ── Scroll reveal (only hides content once JS confirms it can show it) ── */
+      .reveal-ready .reveal {
+        opacity: 0;
+        transform: translateY(26px);
+        transition: opacity .75s cubic-bezier(.22,.61,.36,1),
+                    transform .75s cubic-bezier(.22,.61,.36,1);
+      }
+      .reveal-ready .reveal.in {
+        opacity: 1;
+        transform: none;
+      }
+
+      /* ── Hero entrance ── */
+      .reveal-ready .hero__announcement,
+      .reveal-ready .hero__logotype,
+      .reveal-ready .hero__meta {
+        opacity: 0;
+        animation: heroIn .95s cubic-bezier(.22,.61,.36,1) forwards;
+      }
+      .reveal-ready .hero__announcement { animation-delay: .15s; }
+      .reveal-ready .hero__logotype     { animation-delay: .30s; }
+      .reveal-ready .hero__meta         { animation-delay: .48s; }
+      @keyframes heroIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      /* ── Hero illustration + About rise as one fused blue mass ──
+         The bottom wave SVG and the navy About section share the same
+         colour and meet at a seamless seam. Animating the SVG alone would
+         tear that seam open, so both run the *identical* entrance — same
+         keyframe, duration and delay — and move as a single rigid unit. */
+      .reveal-ready .hero__bottom,
+      .reveal-ready .section-about {
+        animation: fuseRise .6s cubic-bezier(.22,.61,.36,1) .5s backwards;
+      }
+      @keyframes fuseRise {
+        from { transform: translateY(22px); }
+        to   { transform: translateY(0); }
+      }
+
+      /* ── About: the divider lines draw outward when the rule reveals ── */
+      .reveal-ready .section-about__rule::before,
+      .reveal-ready .section-about__rule::after {
+        transform: scaleX(0);
+        transition: transform .85s cubic-bezier(.22,.61,.36,1) .15s;
+      }
+      .reveal-ready .section-about__rule::before { transform-origin: right center; }
+      .reveal-ready .section-about__rule::after  { transform-origin: left center; }
+      .reveal-ready .section-about__rule.in::before,
+      .reveal-ready .section-about__rule.in::after { transform: scaleX(1); }
+      .reveal-ready .section-about__rule .dot {
+        opacity: 0;
+        transition: opacity .4s ease .5s;
+      }
+      .reveal-ready .section-about__rule.in .dot { opacity: 1; }
+
+      /* ── Keynote leaf badge spins + pops in with its card ── */
+      .reveal-ready .speaker-card .speaker-leaf-badge {
+        opacity: 0;
+        transform: scale(.3) rotate(-50deg);
+        transition: opacity .5s ease .3s,
+                    transform .75s cubic-bezier(.34,1.56,.64,1) .3s;
+      }
+      .reveal-ready .speaker-card.in .speaker-leaf-badge {
+        opacity: 1;
+        transform: rotate(0) scale(1);
+      }
+      /* hover override still wins after reveal completes */
+      .reveal-ready .speaker-card.in:hover .speaker-leaf-badge {
+        transform: rotate(-8deg) scale(1.08);
+      }
+
+      /* Cards that both reveal AND lift on hover need their hover transform
+         re-asserted, since `.reveal.in { transform:none }` outranks it. */
+      .reveal-ready .speaker-card.in:hover  { transform: translateY(-5px); }
+      .reveal-ready .quicklink-card.in:hover { transform: translateY(-2px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Scroll progress indicator -->
+<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+<!-- ═══════════════════════════════════════════════
+     HERO SECTION (from Figma)
+═══════════════════════════════════════════════ -->
+<section class="hero">
+
+  <!-- Soft pink/peach background image -->
+  <div class="hero__bg" aria-hidden="true"></div>
+
+  <!-- Navigation -->
+  <nav class="nav" id="mainNav">
+    <div class="nav__logo">
+      <img
+        src="assets/logo.svg"
+        alt="PyCon JP logo"
+      />
+    </div>
+
+    <ul class="nav__links">
+      <li><a href="#timetable">Timetable</a></li>
+      <li><a href="#attend">Attend</a></li>
+      <li><a href="#venue">Venue</a></li>
+      <li><a href="#sponsors">Sponsors</a></li>
+      <li><a href="#events">Events</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+
+    <div class="nav__right">
+      <div class="nav__lang" id="langToggle" data-active="en" role="group" aria-label="Language">
+        <span class="nav__lang-thumb" aria-hidden="true"></span>
+        <button type="button" class="active" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="jp" aria-pressed="false">JP</button>
+      </div>
+      <a href="#tickets" class="btn-tickets">Get Tickets</a>
+    </div>
+  </nav>
+  <div class="nav-placeholder" id="navPlaceholder"></div>
+
+  <!-- Central content -->
+  <div class="hero__body">
+    <!-- Announcement pill -->
+    <div class="hero__announcement">
+      Second keynote speaker announced! <a href="#keynote">Learn more →</a>
+    </div>
+
+    <!-- PyCon JP logotype + 2026 year badge (from Figma "Logotype-group") -->
+    <img
+      class="hero__logotype"
+      src="assets/logotype-group.svg"
+      alt="PyCon JP 2026"
+    />
+
+    <!-- Location & date -->
+    <div class="hero__meta">
+      <div class="hero__meta-item">
+        <div class="hero__meta-icon">
+          <img
+            src="assets/icon-calendar.svg"
+            alt=""
+          />
+        </div>
+        <span class="hero__meta-text">ICC, Hiroshima</span>
+      </div>
+      <div class="hero__meta-item">
+        <div class="hero__meta-icon">
+          <img
+            src="assets/icon-location.svg"
+            alt=""
+          />
+        </div>
+        <span class="hero__meta-text">August 21–23</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom wave + snake/torii illustration -->
+  <div class="hero__bottom">
+    <img
+      src="assets/hero-bottom-illustration.svg"
+      alt="PyCon JP 2026 illustration — torii gate and python snake in wave"
+    />
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     REST OF PAGE
+═══════════════════════════════════════════════ -->
+<main class="page-body">
+
+  <!-- ── 2. About the Conference ─────────────────────────────── -->
+  <section class="section-about" id="about">
+    <div class="container">
+      <h2 class="section-about__title">
+        <em>Japan's</em> premier<br />
+        gathering for the<br />
+        Python community<em>.</em>
+      </h2>
+      <div class="section-about__rule"><span class="dot"></span></div>
+      <p class="section-about__text">
+        PyCon JP is an annual conference bringing together Python developers,
+        researchers, educators, and enthusiasts from across Japan and around the
+        world. Three days of talks, workshops, sprints, and hallway conversations
+        in the beautiful city of Hiroshima.
+      </p>
+      <p class="section-about__text">
+        Whether you write Python for data science, web development, automation,
+        or education — this is your place to learn, share, and connect with
+        people who love the language as much as you do.
+      </p>
+      <div class="section-about__cta">
+        <a href="#tickets" class="btn-tickets">Buy Tickets →</a>
+        <a href="#sponsors" class="btn-outline-light">Sponsor the Event →</a>
+      </div>
+    </div>
+
+    <!-- Wave blending into the keynote section's cream background -->
+    <div class="section-about__wave" aria-hidden="true">
+      <svg viewBox="0 0 1600 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M0,55 C200,115 400,5 800,55 C1200,105 1400,5 1600,55 L1600,110 L0,110 Z"
+          fill="#F9E4E0"
+        />
+      </svg>
+    </div>
+  </section>
+
+  <!-- ── 3. Keynote Speakers ─────────────────────────────────── -->
+  <section class="section-keynote" id="keynote">
+    <div class="container">
+      <h2 class="keynote-title">Keynote Speakers<span class="dot">.</span></h2>
+      <p class="keynote-sub">We're excited to welcome visionary speakers who are shaping the future of Python and beyond.</p>
+
+      <div class="speakers-grid">
+          <!-- Speaker 1 -->
+          <div class="speaker-card">
+            <div class="speaker-photo-wrap">
+              <div class="speaker-avatar">
+                <img src="assets/speaker-carol-willing.png" alt="Carol Willing" />
+              </div>
+              <div class="speaker-leaf-badge">
+                <div class="speaker-leaf-badge-inner">
+                  <svg viewBox="0 0 50 47" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M34.7065 0.0341122C34.7488 -0.00646888 34.8164 -0.0171004 34.8384 0.0372157C34.8454 0.0547257 34.8527 0.0841386 34.8503 0.102862C34.7872 0.587719 34.594 1.36467 34.496 1.86823C34.3536 2.63782 34.2519 3.41435 34.1912 4.19463C34.0304 6.27784 34.2208 8.33047 34.1121 10.4191C33.8609 15.2446 31.6448 19.483 28.7404 23.2469C28.4257 23.6547 28.095 24.0513 27.7587 24.4442C27.5695 24.6651 27.7754 24.8912 28.0104 24.72C28.679 24.2346 29.3627 23.7702 30.0605 23.3275C33.3119 21.2866 36.7414 20.0961 40.6018 20.1244C42.759 20.1403 44.9448 20.3813 47.0952 20.2158C47.4308 20.191 47.7656 20.1599 48.0998 20.1226C48.3187 20.0969 48.7691 20.0271 49.0079 20.0345C49.0474 20.0357 49.0942 20.0481 49.1194 20.0785C49.1483 20.1133 49.1227 20.1634 49.0926 20.1971C49.0012 20.299 48.8002 20.4592 48.7284 20.5209L47.8056 21.3116C47.0966 21.9301 46.4207 22.5855 45.7807 23.2751C44.6288 24.5336 43.4969 25.9949 42.3056 27.1911C39.855 29.6515 36.6629 31.2713 33.2694 31.9383C32.641 32.0626 32.0073 32.1586 31.3703 32.2255C31.2696 32.2359 31.1664 32.2453 31.062 32.2545C30.9097 32.2678 30.9087 32.5034 31.0603 32.5228C34.0478 32.9028 36.8668 34.1736 39.2318 36.0206C40.7636 37.2168 42.1638 38.5403 43.8016 39.5962C43.905 39.663 44.0281 39.7412 44.0682 39.8579C44.0753 39.8787 44.0651 39.9008 44.0464 39.9124C44.0393 39.9167 44.0315 39.9193 44.0232 39.92C43.5765 39.9573 42.9015 39.855 42.4357 39.8241C40.5929 39.7023 38.7509 40.0527 36.9183 40.2403C34.2371 40.5149 31.5981 40.3974 29.0597 39.4207C28.0759 39.0422 27.1678 38.6726 26.2901 38.1202C26.1959 38.0609 26.0869 38.1676 26.151 38.2587C27.5608 40.2626 27.7647 42.7506 28.2056 45.0862C28.2743 45.4491 28.3508 45.849 28.3726 46.2176C28.3776 46.2986 28.2596 46.3082 28.19 46.2666C27.9961 46.1505 27.6796 45.8779 27.5582 45.7838C27.1515 45.4618 26.7311 45.1579 26.298 44.8726C25.2261 44.1815 24.3468 43.7174 23.3115 42.932C21.0082 41.1496 19.3172 38.7039 18.4594 35.9352C18.3588 35.6103 17.923 35.5254 17.7183 35.797C15.3421 38.9501 13.4537 40.8815 10.0657 43.3034C9.72479 43.5472 9.35654 43.7923 9.00174 44.032C8.875 44.1177 8.71063 44.1244 8.57762 44.0489L7.2357 43.2867C6.95303 43.1261 6.96894 42.7127 7.26093 42.5698C10.0382 41.2106 12.4049 39.6889 14.574 37.3598C14.91 36.9991 15.2114 36.6511 15.5052 36.2971C15.7519 35.9997 15.4409 35.5766 15.0706 35.6871C12.9954 36.2987 10.8016 36.3899 8.6828 35.9523C8.16791 35.8468 7.66161 35.7032 7.16802 35.5226C5.50977 34.924 3.95358 34.0592 2.23566 33.6008C2.18612 33.5877 2.10652 33.5643 2.03415 33.5335C1.92599 33.4874 1.90974 33.3642 2.01051 33.3036C2.16464 33.211 2.41311 33.1351 2.53016 33.0863C2.83133 32.9621 3.12774 32.8269 3.41881 32.6806C5.6181 31.5842 7.4551 30.5388 9.87005 30.6535C10.0176 30.6605 10.0712 30.4699 9.9392 30.4037C7.02773 28.9424 4.77374 26.9243 3.28828 24.0068C2.60901 22.6729 2.16241 21.49 1.5537 20.1766C1.26861 19.5678 0.959174 18.9708 0.626129 18.3871C0.497263 18.1582 0.142941 17.5599 0.0115557 17.2716C-0.0131731 17.2173 0.00207172 17.1125 0.0568902 17.1359C0.711125 17.4158 1.71756 18.009 2.35603 18.2767C3.30406 18.6741 4.22539 18.9674 5.14884 19.3293C7.56651 20.2767 9.25524 21.2737 10.9066 22.8097C11.1545 23.0403 11.5349 22.7608 11.3841 22.4577C9.52726 18.7255 9.0097 14.4686 9.91821 10.4004C10.23 9.01081 10.7299 7.74113 11.0948 6.38355C11.3205 5.56513 11.5158 4.73864 11.6804 3.90581C11.7777 3.43202 11.882 2.90134 11.9899 2.4256C12.0025 2.37021 12.0226 2.36497 12.0598 2.35082C12.0714 2.34642 12.0845 2.34838 12.0939 2.35639C12.0981 2.3599 12.1012 2.36426 12.1032 2.3693C12.5254 3.45638 13.0827 5.10902 13.6253 6.09111C14.3364 7.34167 15.2565 8.50578 16.0398 9.71246C17.955 12.6632 19.1282 15.8802 19.4392 19.3922C19.47 19.74 19.9786 19.7702 20.0503 19.4285C21.109 14.3827 23.0219 10.2114 27.1998 6.53059C28.7097 5.20015 30.3721 4.1261 31.8361 2.86224C32.4507 2.33679 33.0392 1.78177 33.5997 1.19913C33.9361 0.849884 34.3536 0.373261 34.7065 0.0341122Z" fill="#fff"/>
+                </svg>
+                </div>
+              </div>
+            </div>
+            <div class="speaker-info">
+              <div class="speaker-name">Carol Willing</div>
+              <div class="speaker-role">Jupyter Core Developer &amp; Python Steering Council Member</div>
+              <hr class="speaker-divider" />
+              <div class="speaker-topic">Talk topic: TBA</div>
+            </div>
+          </div>
+
+          <!-- Speaker 2 -->
+          <div class="speaker-card">
+            <div class="speaker-photo-wrap">
+              <div class="speaker-avatar">
+                <img src="assets/speaker-takashi-kitao.png" alt="Takashi Kitao" />
+              </div>
+              <div class="speaker-leaf-badge">
+                <div class="speaker-leaf-badge-inner">
+                  <svg viewBox="0 0 50 47" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M34.7065 0.0341122C34.7488 -0.00646888 34.8164 -0.0171004 34.8384 0.0372157C34.8454 0.0547257 34.8527 0.0841386 34.8503 0.102862C34.7872 0.587719 34.594 1.36467 34.496 1.86823C34.3536 2.63782 34.2519 3.41435 34.1912 4.19463C34.0304 6.27784 34.2208 8.33047 34.1121 10.4191C33.8609 15.2446 31.6448 19.483 28.7404 23.2469C28.4257 23.6547 28.095 24.0513 27.7587 24.4442C27.5695 24.6651 27.7754 24.8912 28.0104 24.72C28.679 24.2346 29.3627 23.7702 30.0605 23.3275C33.3119 21.2866 36.7414 20.0961 40.6018 20.1244C42.759 20.1403 44.9448 20.3813 47.0952 20.2158C47.4308 20.191 47.7656 20.1599 48.0998 20.1226C48.3187 20.0969 48.7691 20.0271 49.0079 20.0345C49.0474 20.0357 49.0942 20.0481 49.1194 20.0785C49.1483 20.1133 49.1227 20.1634 49.0926 20.1971C49.0012 20.299 48.8002 20.4592 48.7284 20.5209L47.8056 21.3116C47.0966 21.9301 46.4207 22.5855 45.7807 23.2751C44.6288 24.5336 43.4969 25.9949 42.3056 27.1911C39.855 29.6515 36.6629 31.2713 33.2694 31.9383C32.641 32.0626 32.0073 32.1586 31.3703 32.2255C31.2696 32.2359 31.1664 32.2453 31.062 32.2545C30.9097 32.2678 30.9087 32.5034 31.0603 32.5228C34.0478 32.9028 36.8668 34.1736 39.2318 36.0206C40.7636 37.2168 42.1638 38.5403 43.8016 39.5962C43.905 39.663 44.0281 39.7412 44.0682 39.8579C44.0753 39.8787 44.0651 39.9008 44.0464 39.9124C44.0393 39.9167 44.0315 39.9193 44.0232 39.92C43.5765 39.9573 42.9015 39.855 42.4357 39.8241C40.5929 39.7023 38.7509 40.0527 36.9183 40.2403C34.2371 40.5149 31.5981 40.3974 29.0597 39.4207C28.0759 39.0422 27.1678 38.6726 26.2901 38.1202C26.1959 38.0609 26.0869 38.1676 26.151 38.2587C27.5608 40.2626 27.7647 42.7506 28.2056 45.0862C28.2743 45.4491 28.3508 45.849 28.3726 46.2176C28.3776 46.2986 28.2596 46.3082 28.19 46.2666C27.9961 46.1505 27.6796 45.8779 27.5582 45.7838C27.1515 45.4618 26.7311 45.1579 26.298 44.8726C25.2261 44.1815 24.3468 43.7174 23.3115 42.932C21.0082 41.1496 19.3172 38.7039 18.4594 35.9352C18.3588 35.6103 17.923 35.5254 17.7183 35.797C15.3421 38.9501 13.4537 40.8815 10.0657 43.3034C9.72479 43.5472 9.35654 43.7923 9.00174 44.032C8.875 44.1177 8.71063 44.1244 8.57762 44.0489L7.2357 43.2867C6.95303 43.1261 6.96894 42.7127 7.26093 42.5698C10.0382 41.2106 12.4049 39.6889 14.574 37.3598C14.91 36.9991 15.2114 36.6511 15.5052 36.2971C15.7519 35.9997 15.4409 35.5766 15.0706 35.6871C12.9954 36.2987 10.8016 36.3899 8.6828 35.9523C8.16791 35.8468 7.66161 35.7032 7.16802 35.5226C5.50977 34.924 3.95358 34.0592 2.23566 33.6008C2.18612 33.5877 2.10652 33.5643 2.03415 33.5335C1.92599 33.4874 1.90974 33.3642 2.01051 33.3036C2.16464 33.211 2.41311 33.1351 2.53016 33.0863C2.83133 32.9621 3.12774 32.8269 3.41881 32.6806C5.6181 31.5842 7.4551 30.5388 9.87005 30.6535C10.0176 30.6605 10.0712 30.4699 9.9392 30.4037C7.02773 28.9424 4.77374 26.9243 3.28828 24.0068C2.60901 22.6729 2.16241 21.49 1.5537 20.1766C1.26861 19.5678 0.959174 18.9708 0.626129 18.3871C0.497263 18.1582 0.142941 17.5599 0.0115557 17.2716C-0.0131731 17.2173 0.00207172 17.1125 0.0568902 17.1359C0.711125 17.4158 1.71756 18.009 2.35603 18.2767C3.30406 18.6741 4.22539 18.9674 5.14884 19.3293C7.56651 20.2767 9.25524 21.2737 10.9066 22.8097C11.1545 23.0403 11.5349 22.7608 11.3841 22.4577C9.52726 18.7255 9.0097 14.4686 9.91821 10.4004C10.23 9.01081 10.7299 7.74113 11.0948 6.38355C11.3205 5.56513 11.5158 4.73864 11.6804 3.90581C11.7777 3.43202 11.882 2.90134 11.9899 2.4256C12.0025 2.37021 12.0226 2.36497 12.0598 2.35082C12.0714 2.34642 12.0845 2.34838 12.0939 2.35639C12.0981 2.3599 12.1012 2.36426 12.1032 2.3693C12.5254 3.45638 13.0827 5.10902 13.6253 6.09111C14.3364 7.34167 15.2565 8.50578 16.0398 9.71246C17.955 12.6632 19.1282 15.8802 19.4392 19.3922C19.47 19.74 19.9786 19.7702 20.0503 19.4285C21.109 14.3827 23.0219 10.2114 27.1998 6.53059C28.7097 5.20015 30.3721 4.1261 31.8361 2.86224C32.4507 2.33679 33.0392 1.78177 33.5997 1.19913C33.9361 0.849884 34.3536 0.373261 34.7065 0.0341122Z" fill="#fff"/>
+                </svg>
+                </div>
+              </div>
+            </div>
+            <div class="speaker-info">
+              <div class="speaker-name">Takashi Kitao</div>
+              <div class="speaker-role">Software Engineer & Creator of Pyxel</div>
+              <hr class="speaker-divider" />
+              <div class="speaker-topic">Talk topic: TBA</div>
+            </div>
+          </div>
+
+          <!-- Speaker 3 -->
+          <div class="speaker-card">
+            <div class="speaker-photo-wrap">
+              <div class="speaker-avatar">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                </svg>
+              </div>
+              <div class="speaker-leaf-badge">
+                <div class="speaker-leaf-badge-inner">
+                  <svg viewBox="0 0 50 47" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M34.7065 0.0341122C34.7488 -0.00646888 34.8164 -0.0171004 34.8384 0.0372157C34.8454 0.0547257 34.8527 0.0841386 34.8503 0.102862C34.7872 0.587719 34.594 1.36467 34.496 1.86823C34.3536 2.63782 34.2519 3.41435 34.1912 4.19463C34.0304 6.27784 34.2208 8.33047 34.1121 10.4191C33.8609 15.2446 31.6448 19.483 28.7404 23.2469C28.4257 23.6547 28.095 24.0513 27.7587 24.4442C27.5695 24.6651 27.7754 24.8912 28.0104 24.72C28.679 24.2346 29.3627 23.7702 30.0605 23.3275C33.3119 21.2866 36.7414 20.0961 40.6018 20.1244C42.759 20.1403 44.9448 20.3813 47.0952 20.2158C47.4308 20.191 47.7656 20.1599 48.0998 20.1226C48.3187 20.0969 48.7691 20.0271 49.0079 20.0345C49.0474 20.0357 49.0942 20.0481 49.1194 20.0785C49.1483 20.1133 49.1227 20.1634 49.0926 20.1971C49.0012 20.299 48.8002 20.4592 48.7284 20.5209L47.8056 21.3116C47.0966 21.9301 46.4207 22.5855 45.7807 23.2751C44.6288 24.5336 43.4969 25.9949 42.3056 27.1911C39.855 29.6515 36.6629 31.2713 33.2694 31.9383C32.641 32.0626 32.0073 32.1586 31.3703 32.2255C31.2696 32.2359 31.1664 32.2453 31.062 32.2545C30.9097 32.2678 30.9087 32.5034 31.0603 32.5228C34.0478 32.9028 36.8668 34.1736 39.2318 36.0206C40.7636 37.2168 42.1638 38.5403 43.8016 39.5962C43.905 39.663 44.0281 39.7412 44.0682 39.8579C44.0753 39.8787 44.0651 39.9008 44.0464 39.9124C44.0393 39.9167 44.0315 39.9193 44.0232 39.92C43.5765 39.9573 42.9015 39.855 42.4357 39.8241C40.5929 39.7023 38.7509 40.0527 36.9183 40.2403C34.2371 40.5149 31.5981 40.3974 29.0597 39.4207C28.0759 39.0422 27.1678 38.6726 26.2901 38.1202C26.1959 38.0609 26.0869 38.1676 26.151 38.2587C27.5608 40.2626 27.7647 42.7506 28.2056 45.0862C28.2743 45.4491 28.3508 45.849 28.3726 46.2176C28.3776 46.2986 28.2596 46.3082 28.19 46.2666C27.9961 46.1505 27.6796 45.8779 27.5582 45.7838C27.1515 45.4618 26.7311 45.1579 26.298 44.8726C25.2261 44.1815 24.3468 43.7174 23.3115 42.932C21.0082 41.1496 19.3172 38.7039 18.4594 35.9352C18.3588 35.6103 17.923 35.5254 17.7183 35.797C15.3421 38.9501 13.4537 40.8815 10.0657 43.3034C9.72479 43.5472 9.35654 43.7923 9.00174 44.032C8.875 44.1177 8.71063 44.1244 8.57762 44.0489L7.2357 43.2867C6.95303 43.1261 6.96894 42.7127 7.26093 42.5698C10.0382 41.2106 12.4049 39.6889 14.574 37.3598C14.91 36.9991 15.2114 36.6511 15.5052 36.2971C15.7519 35.9997 15.4409 35.5766 15.0706 35.6871C12.9954 36.2987 10.8016 36.3899 8.6828 35.9523C8.16791 35.8468 7.66161 35.7032 7.16802 35.5226C5.50977 34.924 3.95358 34.0592 2.23566 33.6008C2.18612 33.5877 2.10652 33.5643 2.03415 33.5335C1.92599 33.4874 1.90974 33.3642 2.01051 33.3036C2.16464 33.211 2.41311 33.1351 2.53016 33.0863C2.83133 32.9621 3.12774 32.8269 3.41881 32.6806C5.6181 31.5842 7.4551 30.5388 9.87005 30.6535C10.0176 30.6605 10.0712 30.4699 9.9392 30.4037C7.02773 28.9424 4.77374 26.9243 3.28828 24.0068C2.60901 22.6729 2.16241 21.49 1.5537 20.1766C1.26861 19.5678 0.959174 18.9708 0.626129 18.3871C0.497263 18.1582 0.142941 17.5599 0.0115557 17.2716C-0.0131731 17.2173 0.00207172 17.1125 0.0568902 17.1359C0.711125 17.4158 1.71756 18.009 2.35603 18.2767C3.30406 18.6741 4.22539 18.9674 5.14884 19.3293C7.56651 20.2767 9.25524 21.2737 10.9066 22.8097C11.1545 23.0403 11.5349 22.7608 11.3841 22.4577C9.52726 18.7255 9.0097 14.4686 9.91821 10.4004C10.23 9.01081 10.7299 7.74113 11.0948 6.38355C11.3205 5.56513 11.5158 4.73864 11.6804 3.90581C11.7777 3.43202 11.882 2.90134 11.9899 2.4256C12.0025 2.37021 12.0226 2.36497 12.0598 2.35082C12.0714 2.34642 12.0845 2.34838 12.0939 2.35639C12.0981 2.3599 12.1012 2.36426 12.1032 2.3693C12.5254 3.45638 13.0827 5.10902 13.6253 6.09111C14.3364 7.34167 15.2565 8.50578 16.0398 9.71246C17.955 12.6632 19.1282 15.8802 19.4392 19.3922C19.47 19.74 19.9786 19.7702 20.0503 19.4285C21.109 14.3827 23.0219 10.2114 27.1998 6.53059C28.7097 5.20015 30.3721 4.1261 31.8361 2.86224C32.4507 2.33679 33.0392 1.78177 33.5997 1.19913C33.9361 0.849884 34.3536 0.373261 34.7065 0.0341122Z" fill="#fff"/>
+                </svg>
+                </div>
+              </div>
+            </div>
+            <div class="speaker-info">
+              <div class="speaker-name">Keynote Speaker</div>
+              <div class="speaker-role">To Be Announced</div>
+              <hr class="speaker-divider" />
+              <div class="speaker-topic">Talk topic: TBA</div>
+            </div>
+          </div>
+      </div>
+    </div>
+
+    <!-- Wave blending into the news section's background -->
+    <div class="section-keynote__wave" aria-hidden="true">
+      <svg viewBox="0 0 1600 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M0,55 C200,5 400,105 800,55 C1200,5 1400,105 1600,55 L1600,110 L0,110 Z"
+          fill="#FEF8F6"
+        />
+      </svg>
+    </div>
+  </section>
+
+  <!-- ── 4. News & Announcements ─────────────────────────────── -->
+  <section class="section-news" id="news">
+    <div class="container">
+      <div class="news-header">
+        <div>
+          <h2>Latest updates<span class="news-dot">.</span></h2>
+        </div>
+        <a href="#all-news">All news →</a>
+      </div>
+
+      <div class="news-list">
+        <a class="news-item" href="#">
+          <span class="news-date">Jun 25, 2026</span>
+          <span class="news-tag">Speakers</span>
+          <span class="news-title">Second keynote speaker announced — Yuki Terao from RIKEN AIP will present on responsible AI in Japan</span>
+        </a>
+        <a class="news-item" href="#">
+          <span class="news-date">Jun 10, 2026</span>
+          <span class="news-tag news-tag--blue">CFP</span>
+          <span class="news-title">Call for Proposals is now closed. Thank you to everyone who submitted a talk or tutorial.</span>
+        </a>
+        <a class="news-item" href="#">
+          <span class="news-date">May 28, 2026</span>
+          <span class="news-tag">Tickets</span>
+          <span class="news-title">Early bird tickets sold out. Standard registration is open until August 1.</span>
+        </a>
+        <a class="news-item" href="#">
+          <span class="news-date">May 14, 2026</span>
+          <span class="news-tag news-tag--green">Sponsors</span>
+          <span class="news-title">Platinum sponsors announced — thank you to our generous supporters making PyCon JP possible.</span>
+        </a>
+        <a class="news-item" href="#">
+          <span class="news-date">Apr 3, 2026</span>
+          <span class="news-tag news-tag--blue">Venue</span>
+          <span class="news-title">Venue confirmed: International Conference Center Hiroshima. Walking distance from Peace Memorial Park.</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Wave blending into the quick-links section's background -->
+    <div class="section-news__wave" aria-hidden="true">
+      <svg viewBox="0 0 1600 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M0,55 C200,105 400,5 800,55 C1200,105 1400,5 1600,55 L1600,110 L0,110 Z"
+          fill="#FBF3F0"
+        />
+      </svg>
+    </div>
+  </section>
+
+  <!-- ── 5. Overview Quick-links ─────────────────────────────── -->
+  <section class="section-quicklinks" id="overview">
+    <div class="container">
+      <h2 style="font-size:42px;font-weight:700;color:var(--navy);letter-spacing:-0.02em;margin-bottom:40px;line-height:1.2;text-align:center;">Plan your PyCon JP<span class="news-dot">.</span></h2>
+
+      <div class="quicklinks-grid">
+        <!-- Attend -->
+        <a class="quicklink-card" href="#attend">
+          <div class="quicklink-icon">
+            <svg viewBox="0 -960 960 960" height="24" width="24"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm0-160q17 0 28.5-11.5T520-480q0-17-11.5-28.5T480-520q-17 0-28.5 11.5T440-480q0 17 11.5 28.5T480-440Zm0-160q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm320 440H160q-33 0-56.5-23.5T80-240v-160q33 0 56.5-23.5T160-480q0-33-23.5-56.5T80-560v-160q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v160q-33 0-56.5 23.5T800-480q0 33 23.5 56.5T880-400v160q0 33-23.5 56.5T800-160Zm0-80v-102q-37-22-58.5-58.5T720-480q0-43 21.5-79.5T800-618v-102H160v102q37 22 58.5 58.5T240-480q0 43-21.5 79.5T160-342v102h640ZM480-480Z"/></svg>
+          </div>
+          <div class="quicklink-title">Attend</div>
+          <div class="quicklink-desc">Registration, visa support, student discounts, and everything you need to join us in Hiroshima.</div>
+          <div class="quicklink-arrow">→</div>
+        </a>
+
+        <!-- Venue -->
+        <a class="quicklink-card" href="#venue">
+          <div class="quicklink-icon">
+            <svg viewBox="0 -960 960 960" height="24" width="24"><path d="M536.5-503.5Q560-527 560-560t-23.5-56.5Q513-640 480-640t-56.5 23.5Q400-593 400-560t23.5 56.5Q447-480 480-480t56.5-23.5ZM480-186q122-112 181-203.5T720-552q0-109-69.5-178.5T480-800q-101 0-170.5 69.5T240-552q0 71 59 162.5T480-186Zm0 106Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z"/></svg>
+          </div>
+          <div class="quicklink-title">Venue</div>
+          <div class="quicklink-desc">International Conference Center Hiroshima (Conference Days) and Hiroshima University Higashi-Senda Campus (Sprint Day).</div>
+          <div class="quicklink-arrow">→</div>
+        </a>
+
+        <!-- Sponsors -->
+        <a class="quicklink-card" href="#sponsors">
+          <div class="quicklink-icon">
+            <svg viewBox="0 -960 960 960" height="24" width="24"><path d="M475-160q4 0 8-2t6-4l328-328q12-12 17.5-27t5.5-30q0-16-5.5-30.5T817-607L647-777q-11-12-25.5-17.5T591-800q-15 0-30 5.5T534-777l-11 11 74 75q15 14 22 32t7 38q0 42-28.5 70.5T527-522q-20 0-38.5-7T456-550l-75-74-175 175q-3 3-4.5 6.5T200-435q0 8 6 14.5t14 6.5q4 0 8-2t6-4l136-136 56 56-135 136q-3 3-4.5 6.5T285-350q0 8 6 14t14 6q4 0 8-2t6-4l136-135 56 56-135 136q-3 2-4.5 6t-1.5 8q0 8 6 14t14 6q4 0 7.5-1.5t6.5-4.5l136-135 56 56-136 136q-3 3-4.5 6.5T454-180q0 8 6.5 14t14.5 6Zm-1 80q-37 0-65.5-24.5T375-166q-34-5-57-28t-28-57q-34-5-56.5-28.5T206-336q-38-5-62-33t-24-66q0-20 7.5-38.5T149-506l232-231 131 131q2 3 6 4.5t8 1.5q9 0 15-5.5t6-14.5q0-4-1.5-8t-4.5-6L398-777q-11-12-25.5-17.5T342-800q-15 0-30 5.5T285-777L144-635q-9 9-15 21t-8 24q-2 12 0 24.5t8 23.5l-58 58q-17-23-25-50.5T40-590q2-28 14-54.5T87-692l141-141q24-23 53.5-35t60.5-12q31 0 60.5 12t52.5 35l11 11 11-11q24-23 53.5-35t60.5-12q31 0 60.5 12t52.5 35l169 169q23 23 35 53t12 61q0 31-12 60.5T873-437L545-110q-14 14-32.5 22T474-80Zm-99-560Z"/></svg>
+          </div>
+          <div class="quicklink-title">Sponsors</div>
+          <div class="quicklink-desc">Support the Python community in Japan. Sponsorship packages available for all budgets.</div>
+          <div class="quicklink-arrow">→</div>
+        </a>
+
+        <!-- Events -->
+        <a class="quicklink-card" href="#events">
+          <div class="quicklink-icon">
+            <svg viewBox="0 -960 960 960" height="24" width="24"><path d="m80-80 200-560 360 360L80-80Zm132-132 282-100-182-182-100 282Zm370-246-42-42 224-224q32-32 77-32t77 32l24 24-42 42-24-24q-14-14-35-14t-35 14L582-458ZM422-618l-42-42 24-24q14-14 14-34t-14-34l-26-26 42-42 26 26q32 32 32 76t-32 76l-24 24Zm80 80-42-42 144-144q14-14 14-35t-14-35l-64-64 42-42 64 64q32 32 32 77t-32 77L502-538Zm160 160-42-42 64-64q32-32 77-32t77 32l64 64-42 42-64-64q-14-14-35-14t-35 14l-64 64ZM212-212Z"/></svg>
+          </div>
+          <div class="quicklink-title">Events</div>
+          <div class="quicklink-desc">Sprints, lightning talks, poster sessions, an opening party, and the official conference dinner.</div>
+          <div class="quicklink-arrow">→</div>
+        </a>
+
+        <!-- About -->
+        <a class="quicklink-card" href="#about">
+          <div class="quicklink-icon">
+            <svg viewBox="0 -960 960 960" height="24" width="24"><path d="M440-280h80v-240h-80v240Zm68.5-331.5Q520-623 520-640t-11.5-28.5Q497-680 480-680t-28.5 11.5Q440-657 440-640t11.5 28.5Q463-600 480-600t28.5-11.5ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
+          </div>
+          <div class="quicklink-title">About PyCon JP</div>
+          <div class="quicklink-desc">Organized by the PyCon JP Association. Learn about our mission, history, and team behind the conference.</div>
+          <div class="quicklink-arrow">→</div>
+        </a>
+
+        <!-- Code of Conduct -->
+        <a class="quicklink-card" href="#coc">
+          <div class="quicklink-icon">
+            <svg viewBox="0 -960 960 960" height="24" width="24"><path d="M160-120v-80h480v80H160Zm226-194L160-540l84-86 228 226-86 86Zm254-254L414-796l86-84 226 226-86 86Zm184 408L302-682l56-56 522 522-56 56Z"/></svg>
+          </div>
+          <div class="quicklink-title">Code of Conduct</div>
+          <div class="quicklink-desc">PyCon JP is dedicated to providing a harassment-free experience for everyone. Please read our CoC.</div>
+          <div class="quicklink-arrow">→</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Wave blending into the timetable section's background -->
+    <div class="section-quicklinks__wave" aria-hidden="true">
+      <svg viewBox="0 0 1600 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M0,55 C200,105 400,5 800,55 C1200,105 1400,5 1600,55 L1600,110 L0,110 Z"
+          fill="#fdf0ee"
+        />
+      </svg>
+    </div>
+  </section>
+
+  <!-- ── 6. Timetable / Poster CTA ───────────────────────────── -->
+  <section class="section-timetable" id="timetable">
+    <div class="container">
+      <h2 style="font-size:42px;font-weight:700;color:var(--navy);letter-spacing:-0.02em;text-align:center;margin-bottom:48px;">See you in Hiroshima<span class="news-dot">.</span></h2>
+
+      <div class="timetable-inner">
+        <!-- Timetable card -->
+        <div class="timetable-card">
+          <p class="section-label">Timetable</p>
+          <h3>Full session schedule<br />across 3 tracks</h3>
+          <p>Browse talks, tutorials, and workshops by track, room, and time on our two Conference Days. Sprint Day (Aug 23) is hands-on, contribution-focused, and runs on its own schedule.</p>
+          <a href="#full-schedule" class="btn-primary">View Full Timetable →</a>
+        </div>
+
+        <!-- Poster session card -->
+        <div class="timetable-card">
+          <p class="section-label">Poster Session</p>
+          <h3>Share your work at<br />the Poster Session</h3>
+          <p>
+            The Poster Session lets you present your project, research, or
+            library in a casual, one-on-one format. It's one of the best ways
+            to get direct feedback and meet people with shared interests.
+          </p>
+          <a href="#poster" class="btn-outline">Submit a Poster →</a>
+        </div>
+      </div>
+
+      <!-- When & where -->
+      <div class="venue-card">
+        <div class="venue-card__item">
+          <div class="venue-card__icon">
+            <svg viewBox="0 -960 960 960"><path d="M480-480q33 0 56.5-23.5T560-560q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560q0 33 23.5 56.5T480-480ZM480-80Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Z"/></svg>
+          </div>
+          <div>
+            <p class="venue-card__label">Conference Days&nbsp;&middot;&nbsp;Aug 21–22</p>
+            <strong class="venue-card__name">International Conference Center, Hiroshima</strong>
+          </div>
+        </div>
+
+        <div class="venue-card__sep"></div>
+
+        <div class="venue-card__item">
+          <div class="venue-card__icon venue-card__icon--sprint">
+            <svg viewBox="0 -960 960 960"><path d="M480-480q33 0 56.5-23.5T560-560q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560q0 33 23.5 56.5T480-480ZM480-80Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Z"/></svg>
+          </div>
+          <div>
+            <p class="venue-card__label">Sprint Day&nbsp;&middot;&nbsp;Aug 23</p>
+            <strong class="venue-card__name">Hiroshima University, Higashi-Senda Campus</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wave blending into the sponsors section's white background -->
+    <div class="section-timetable__divider" aria-hidden="true">
+      <svg viewBox="0 0 1600 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M0,55 C200,5 400,105 800,55 C1200,5 1400,105 1600,55 L1600,110 L0,110 Z"
+          fill="#ffffff"
+        />
+      </svg>
+    </div>
+  </section>
+
+  <!-- ── 7. Sponsors ──────────────────────────────────────────── -->
+  <section class="section-sponsors" id="sponsors">
+    <div class="container">
+      <h2 class="sponsors-title">Our Sponsors<span class="news-dot">.</span></h2>
+      <p class="sponsors-sub">PyCon JP 2026 is made possible by the generous support of companies who believe in the Python community in Japan.</p>
+
+      <!-- Platinum -->
+      <div class="sponsor-tier sponsor-tier--platinum">
+        <div class="sponsor-tier__label">Platinum</div>
+        <div class="sponsor-grid">
+          <a class="sponsor-card" href="#" target="_blank" rel="noopener">
+            <img src="assets/sponsors/hireroo.png" alt="HireRoo, Inc." />
+          </a>
+        </div>
+      </div>
+
+      <!-- Gold -->
+      <div class="sponsor-tier sponsor-tier--gold">
+        <div class="sponsor-tier__label">Gold</div>
+        <div class="sponsor-grid">
+          <a class="sponsor-card" href="#" target="_blank" rel="noopener">
+            <img src="assets/sponsors/elith.png" alt="Elith" />
+          </a>
+          <a class="sponsor-card" href="#" target="_blank" rel="noopener">
+            <img src="assets/sponsors/revcomm.png" alt="RevComm Inc." />
+          </a>
+          <a class="sponsor-card" href="#" target="_blank" rel="noopener">
+            <img src="assets/sponsors/sakana_ai.gif" alt="Sakana AI K.K." />
+          </a>
+        </div>
+      </div>
+
+      <!-- Peace -->
+      <div class="sponsor-tier sponsor-tier--peace">
+        <div class="sponsor-tier__label">Peace</div>
+        <div class="sponsor-grid">
+          <a class="sponsor-card" href="#" target="_blank" rel="noopener">
+            <img src="assets/sponsors/daydelight.png" alt="Day Delight, Inc." />
+          </a>
+        </div>
+      </div>
+
+      <!-- Silver -->
+      <div class="sponsor-tier sponsor-tier--silver">
+        <div class="sponsor-tier__label">Silver</div>
+        <div class="sponsor-grid">
+          <a class="sponsor-card" href="#" target="_blank" rel="noopener">
+            <img src="assets/sponsors/sansan.png" alt="Sansan, Inc." />
+          </a>
+          <a class="sponsor-card" href="#" target="_blank" rel="noopener">
+            <img src="assets/sponsors/beproud.png" alt="BeProud Inc." />
+          </a>
+        </div>
+      </div>
+
+      <div class="sponsors-cta">
+        <a href="#" class="btn-tickets">Become a Sponsor →</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Wave blending into the footer's navy background — standalone, not part of any section -->
+<div class="section-timetable__wave" aria-hidden="true" style="background:#ffffff;">
+  <img src="assets/timetable-footer-illustration.svg" alt="" />
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <img
+            src="assets/footer-logo.svg"
+            alt="PyCon JP 2026"
+          />
+        </div>
+        <p class="footer-tagline">Bringing Python people together.</p>
+        <div class="footer-social">
+          <a href="#" aria-label="X (Twitter)">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.9 2H22l-7.6 8.7L23 22h-6.9l-5.4-7-6.2 7H1.3l8.1-9.3L1 2h7l4.9 6.5L18.9 2zm-2.4 18h1.9L7.6 4H5.6l10.9 16z"/></svg>
+          </a>
+          <a href="#" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2c2.72 0 3.06.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.21.6 1.77 1.16.51.5.9 1.1 1.16 1.77.25.64.42 1.37.47 2.43.05 1.06.06 1.4.06 4.12s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43a4.93 4.93 0 0 1-1.16 1.77c-.5.51-1.1.9-1.77 1.16-.64.25-1.37.42-2.43.47-1.06.05-1.4.06-4.12.06s-3.06-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.93 4.93 0 0 1-1.77-1.16 4.93 4.93 0 0 1-1.16-1.77c-.25-.64-.42-1.37-.47-2.43C2.01 15.06 2 14.72 2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.21 1.16-1.77.5-.51 1.1-.9 1.77-1.16.64-.25 1.37-.42 2.43-.47C8.94 2.01 9.28 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.25A3.25 3.25 0 1 1 12 8.75a3.25 3.25 0 0 1 0 6.5zM17.5 6.25a1.17 1.17 0 1 1 0 2.34 1.17 1.17 0 0 1 0-2.34z"/></svg>
+          </a>
+          <a href="#" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.5 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.55.46A2.78 2.78 0 0 0 1.5 6.42 29 29 0 0 0 1 11.75a29 29 0 0 0 .5 5.33 2.78 2.78 0 0 0 1.95 1.96C5.12 19.5 12 19.5 12 19.5s6.88 0 8.55-.46a2.78 2.78 0 0 0 1.95-1.96 29 29 0 0 0 .5-5.33 29 29 0 0 0-.5-5.33zM9.75 15.02V8.48l5.75 3.27z"/></svg>
+          </a>
+          <a href="#" aria-label="Official Blog">
+            <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg"><path d="M143.5-143.5Q120-167 120-200t23.5-56.5Q167-280 200-280t56.5 23.5Q280-233 280-200t-23.5 56.5Q233-120 200-120t-56.5-23.5ZM680-120q0-117-44-218.5T516-516q-76-76-177.5-120T120-680v-120q142 0 265 53t216 146q93 93 146 216t53 265H680Zm-240 0q0-67-25-124.5T346-346q-44-44-101.5-69T120-440v-120q92 0 171.5 34.5T431-431q60 60 94.5 139.5T560-120H440Z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-nav">
+        <div class="footer-col">
+          <h4>Overview.</h4>
+          <ul class="footer-links">
+            <li><a href="#about">Overview</a></li>
+            <li><a href="#keynote">Keynotes</a></li>
+            <li><a href="#">Invited Talk</a></li>
+            <li><a href="#about">What is PyCon JP?</a></li>
+            <li><a href="#about">Organizers</a></li>
+            <li><a href="#coc">Code of Conduct</a></li>
+            <li><a href="#">Logo</a></li>
+            <li><a href="#">Communities</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Attend.</h4>
+          <ul class="footer-links">
+            <li><a href="#tickets">Tickets</a></li>
+            <li><a href="#">Childcare</a></li>
+            <li><a href="#">Travel Grants</a></li>
+            <li><a href="#">Lunch</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Events.</h4>
+          <ul class="footer-links">
+            <li><a href="#">Related Events</a></li>
+            <li><a href="#events">Events</a></li>
+            <li><a href="#">Sprint</a></li>
+            <li><a href="#">Parties</a></li>
+            <li><a href="#">Okonomi Talk (LT)</a></li>
+            <li><a href="#">Ask The Speaker</a></li>
+            <li><a href="#">Translation App</a></li>
+            <li><a href="#">Program App</a></li>
+            <li><a href="#">Session App</a></li>
+            <li><a href="#">Open Space</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Sponsor.</h4>
+          <ul class="footer-links">
+            <li><a href="#sponsors">Sponsors</a></li>
+            <li><a href="#sponsors">Why Sponsor?</a></li>
+            <li><a href="#" target="_blank" rel="noopener">Prospectus ↗</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Venue.</h4>
+          <ul class="footer-links">
+            <li><a href="#venue">Access</a></li>
+            <li><a href="#venue">Hiroshima</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-illustration" aria-hidden="true">
+    <img src="assets/footer-illustration.svg" alt="" />
+  </div>
+
+  <div class="container">
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 PyCon JP Association. All rights reserved.</span>
+      <span class="footer-credit">Designed with ♡ by <a href="https://daksh.design" target="_blank" rel="noopener">daksh.design</a></span>
+      <div class="footer-legal">
+        <a href="#">PyCon JP Association</a>
+        <span class="footer-legal-sep">|</span>
+        <a href="#">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Sticky nav after scrolling past the hero section
+  const nav = document.getElementById('mainNav');
+  const navPlaceholder = document.getElementById('navPlaceholder');
+
+  function updateNavSticky() {
+    const navHeight = nav.classList.contains('nav--sticky')
+      ? parseFloat(navPlaceholder.style.height) || nav.offsetHeight
+      : nav.offsetHeight;
+    const shouldStick = window.scrollY > navHeight;
+    if (shouldStick && !nav.classList.contains('nav--sticky')) {
+      navPlaceholder.style.height = `${nav.offsetHeight}px`;
+      nav.classList.add('nav--sticky');
+    } else if (!shouldStick && nav.classList.contains('nav--sticky')) {
+      nav.classList.remove('nav--sticky');
+      navPlaceholder.style.height = '0';
+    }
+  }
+
+  window.addEventListener('scroll', updateNavSticky, { passive: true });
+  updateNavSticky();
+
+  // ─── Scroll progress indicator ────────────────────────────────────
+  (function () {
+    const bar = document.getElementById('scrollProgress');
+    if (!bar) return;
+    let ticking = false;
+    function update() {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      const p = max > 0 ? h.scrollTop / max : 0;
+      bar.style.transform = 'scaleX(' + p + ')';
+      ticking = false;
+    }
+    window.addEventListener('scroll', () => {
+      if (!ticking) { requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+    update();
+  })();
+
+  // ─── Language pill toggle (EN / JP) ───────────────────────────────
+  (function () {
+    const toggle = document.getElementById('langToggle');
+    if (!toggle) return;
+    const buttons = toggle.querySelectorAll('button');
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains('active')) return;
+        toggle.dataset.active = btn.dataset.lang;
+        buttons.forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', String(on));
+        });
+      });
+    });
+  })();
+
+  // ─── Motion: scroll reveals + subtle hero parallax ───────────────
+  (function () {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return; // honour the user's preference — keep everything static
+
+    // Mark the document so reveal styles activate (no-JS keeps content visible)
+    document.documentElement.classList.add('reveal-ready');
+
+    // What animates in, and how much each item in a group lags the previous one (ms)
+    const revealConfig = [
+      { sel: '.section-about__title' },
+      { sel: '.section-about__rule' },
+      { sel: '.section-about__text',  stagger: 90 },
+      { sel: '.section-about__cta' },
+      { sel: '.keynote-title' },
+      { sel: '.keynote-sub' },
+      { sel: '.speaker-card',         stagger: 130 },
+      { sel: '.news-header' },
+      { sel: '.news-item',            stagger: 70 },
+      { sel: '#overview > .container > h2' },
+      { sel: '.quicklink-card',       stagger: 85 },
+      { sel: '#timetable > .container > h2' },
+      { sel: '.timetable-card',       stagger: 130 },
+      { sel: '.venue-card' },
+      { sel: '.sponsors-title' },
+      { sel: '.sponsors-sub' },
+      { sel: '.sponsor-tier',         stagger: 100 },
+      { sel: '.footer-col',           stagger: 70 },
+    ];
+
+    revealConfig.forEach(({ sel, stagger }) => {
+      document.querySelectorAll(sel).forEach((el, i) => {
+        el.classList.add('reveal');
+        if (stagger) el.style.transitionDelay = (i * stagger) + 'ms';
+      });
+    });
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+
+    document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+    // Light parallax on the hero backdrop — drifts slower than the page
+    const heroBg = document.querySelector('.hero__bg');
+    if (heroBg) {
+      let ticking = false;
+      const onScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          const y = window.scrollY;
+          if (y < window.innerHeight * 1.2) {
+            heroBg.style.transform = 'translate3d(0,' + (y * 0.18) + 'px,0)';
+          }
+          ticking = false;
+        });
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
+  })();
+</script>
+
+</body>
+</html>
