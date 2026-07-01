@@ -1080,11 +1080,293 @@
     .footer-social svg { width: 16px; height: 16px; fill: rgba(255,255,255,0.85); }
 
     @media (max-width: 900px) {
-      .footer-top { flex-direction: column; gap: 40px; }
-      .footer-nav { flex-wrap: wrap; gap: 32px; }
+      .footer-top { flex-direction: column; align-items: center; gap: 40px; text-align: center; }
+      .footer-brand { display: flex; flex-direction: column; align-items: center; max-width: 320px; }
+      .footer-social { justify-content: center; }
+      /* 2-column grid, but re-paired by length (not DOM order) so each row
+         has similarly-tall columns — Overview(8 links)+Events(10) together,
+         Attend(4)+Sponsor(3) together — instead of the lopsided Overview+
+         Attend / Events+Sponsor pairing that left big gaps next to the
+         shorter column. Venue(2) is short enough on its own that it reads
+         fine spanning the full width as a closing row. */
+      .footer-nav {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 220px));
+        justify-content: center;
+        gap: 40px 48px;
+        margin-left: 0;
+        width: 100%;
+      }
+      .footer-col { min-width: 0; }
+      .footer-col:nth-child(1) { order: 1; } /* Overview */
+      .footer-col:nth-child(3) { order: 2; } /* Events */
+      .footer-col:nth-child(2) { order: 3; } /* Attend */
+      .footer-col:nth-child(4) { order: 4; } /* Sponsor */
+      .footer-col:nth-child(5) { order: 5; grid-column: 1 / -1; } /* Venue */
     }
     @media (max-width: 560px) {
-      .footer-bottom { flex-direction: column; align-items: flex-start; }
+      .footer-bottom { flex-direction: column; align-items: center; text-align: center; gap: 16px; }
+      .footer-legal { justify-content: center; }
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       MOBILE NAV — hamburger toggle & slide-down menu
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .nav__hamburger {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .nav__hamburger:hover { background: rgba(0,0,0,0.05); }
+    .nav__hamburger-box { position: relative; width: 20px; height: 14px; }
+    .nav__hamburger-line {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--navy);
+      transition: transform .28s cubic-bezier(.22,.61,.36,1), opacity .2s ease, top .28s cubic-bezier(.22,.61,.36,1), background-color .25s ease;
+    }
+    .nav__hamburger-line:nth-child(1) { top: 0; }
+    .nav__hamburger-line:nth-child(2) { top: 6px; }
+    .nav__hamburger-line:nth-child(3) { top: 12px; }
+    .nav--menu-open .nav__hamburger-line:nth-child(1) { top: 6px; transform: rotate(45deg); }
+    .nav--menu-open .nav__hamburger-line:nth-child(2) { opacity: 0; }
+    .nav--menu-open .nav__hamburger-line:nth-child(3) { top: 6px; transform: rotate(-45deg); }
+
+    /* Full-screen overlay menu */
+    .nav__mobile-menu { display: none; }
+    .nav__mobile-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 0;
+      width: 100%;
+      max-width: 320px;
+    }
+    .nav__mobile-links li {
+      width: 100%;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity .4s ease, transform .4s cubic-bezier(.22,.61,.36,1);
+    }
+    .nav__mobile-links a {
+      display: inline-block;
+      padding: 14px 4px;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+      text-decoration: none;
+      position: relative;
+      transition: color .2s ease;
+    }
+    .nav__mobile-links a::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: 8px;
+      width: 0;
+      height: 2px;
+      background: var(--red);
+      transform: translateX(-50%);
+      transition: width .25s ease;
+    }
+    .nav__mobile-links a:hover,
+    .nav__mobile-links a:active { color: var(--red); }
+    .nav__mobile-links a:hover::after { width: 32px; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       RESPONSIVE — tablet
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    @media (max-width: 960px) {
+      .container { padding: 0 32px; }
+      footer .container { padding: 0 32px; }
+      .speakers-grid { grid-template-columns: repeat(2, 1fr); max-width: 720px; }
+      .quicklinks-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       RESPONSIVE — nav collapses into hamburger
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    @media (max-width: 880px) {
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 20px;
+      }
+      .nav--sticky { padding-top: 10px; padding-bottom: 10px; }
+      .nav__logo { width: 48px; height: 48px; }
+      .nav--sticky .nav__logo { width: 40px; height: 40px; }
+      .nav__links { display: none; }
+      .nav__right { gap: 8px; }
+      .nav__lang button { width: 36px; font-size: 14px; }
+      .nav__right .btn-tickets { padding: 10px 16px; font-size: 14px; }
+      .nav__hamburger { display: inline-flex; }
+
+      /* nav sits above the full-screen menu while it's open, regardless
+         of scroll position, so the header controls stay usable */
+      .nav--menu-open {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 200;
+        background: #fff;
+        box-shadow: none;
+      }
+
+      /* Full-screen menu panel — a fixed sibling of <nav>, so it always
+         covers the real viewport. */
+      .nav__mobile-menu {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 150;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        padding: 110px 24px 60px;
+        overflow-y: auto;
+        background: #fff;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(-14px);
+        transition: opacity .35s ease, transform .4s cubic-bezier(.22,.61,.36,1), visibility 0s linear .35s;
+      }
+      .nav--menu-open ~ .nav__mobile-menu {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateY(0);
+        transition: opacity .35s ease, transform .4s cubic-bezier(.22,.61,.36,1);
+      }
+      .nav--menu-open ~ .nav__mobile-menu .nav__mobile-links li,
+      .nav--menu-open ~ .nav__mobile-menu .nav__mobile-social {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .nav--menu-open ~ .nav__mobile-menu .nav__mobile-links li:nth-child(1) { transition-delay: .1s; }
+      .nav--menu-open ~ .nav__mobile-menu .nav__mobile-links li:nth-child(2) { transition-delay: .15s; }
+      .nav--menu-open ~ .nav__mobile-menu .nav__mobile-links li:nth-child(3) { transition-delay: .2s; }
+      .nav--menu-open ~ .nav__mobile-menu .nav__mobile-links li:nth-child(4) { transition-delay: .25s; }
+      .nav--menu-open ~ .nav__mobile-menu .nav__mobile-links li:nth-child(5) { transition-delay: .3s; }
+      .nav--menu-open ~ .nav__mobile-menu .nav__mobile-links li:nth-child(6) { transition-delay: .35s; }
+      .nav--menu-open ~ .nav__mobile-menu .nav__mobile-social { transition-delay: .4s; }
+
+      .nav__mobile-social {
+        display: flex;
+        gap: 12px;
+        opacity: 0;
+        transform: translateY(16px);
+        transition: opacity .4s ease, transform .4s cubic-bezier(.22,.61,.36,1);
+      }
+      .nav__mobile-social a {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(26,49,86,0.06);
+        transition: background .15s;
+      }
+      .nav__mobile-social a:hover { background: rgba(26,49,86,0.12); }
+      .nav__mobile-social svg { width: 17px; height: 17px; fill: var(--navy); }
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       RESPONSIVE — mobile content
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    @media (max-width: 760px) {
+      .hero { min-height: auto; }
+      .hero__body { padding: 0 20px; padding-top: 28px; padding-bottom: 40px; }
+      .hero__announcement { font-size: 13px; padding: 6px 14px; text-align: center; margin-bottom: 32px; }
+      .hero__logotype { width: min(320px, 84vw); margin-bottom: 28px; }
+      .hero__meta { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .hero__meta-text { font-size: 19px; }
+      .hero__meta-icon { width: 28px; height: 28px; }
+      .hero__bottom { overflow: hidden; }
+      .hero__bottom img {
+        /* Widen past the container and shift back to center, rather than
+           transform:scale — width + the existing aspect-ratio keeps height
+           in proportion automatically, so cropping the sides never
+           squashes or clips the illustration. */
+        width: 124%;
+        max-width: 124%;
+        margin-left: -12%;
+      }
+
+      .section-about { padding-top: 72px; }
+      .section-about__title { font-size: 34px; margin-bottom: 24px; }
+      .section-about__text { font-size: 16px; }
+      .section-about__cta { flex-direction: column; width: 100%; gap: 14px; }
+      .section-about__cta .btn-tickets,
+      .section-about__cta .btn-outline-light { width: 100%; }
+
+      /* Match every button's type style to Buy Tickets, except the compact
+         nav button (.nav__right .btn-tickets overrides this separately). */
+      .btn-tickets,
+      .btn-outline-light,
+      .timetable-card .btn-primary,
+      .timetable-card .btn-outline {
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      .section-keynote { padding-top: 64px; }
+      .keynote-title { font-size: 32px; }
+      .speakers-grid { grid-template-columns: 1fr; max-width: 400px; }
+
+      .timetable-inner { grid-template-columns: 1fr; gap: 24px; }
+      .timetable-card { padding: 28px; }
+    }
+
+    @media (max-width: 700px) {
+      .news-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .news-header h2 { font-size: 30px; }
+      .news-item { grid-template-columns: 1fr; gap: 6px; padding: 18px 0; }
+      .news-tag { justify-self: start; }
+      .sponsors-title { font-size: 30px; }
+      .section-quicklinks h2,
+      .section-timetable h2 { font-size: 30px !important; }
+      footer .container { padding: 0 24px; }
+      .footer-nav { gap: 32px 40px; }
+    }
+
+    @media (max-width: 640px) {
+      .quicklinks-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .footer-credit { position: static; transform: none; margin: 4px 0; }
+    }
+
+    @media (max-width: 480px) {
+      .container { padding: 0 20px; }
+      footer .container { padding: 0 20px; }
+      .section-about__title { font-size: 28px; }
+      .keynote-title { font-size: 26px; }
+      .news-header h2 { font-size: 24px; }
+      .sponsors-title { font-size: 24px; }
+      .section-quicklinks h2,
+      .section-timetable h2 { font-size: 24px !important; }
+      .hero__meta-text { font-size: 16px; }
     }
 
     /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1273,9 +1555,45 @@
         <button type="button" data-lang="jp" aria-pressed="false">JP</button>
       </div>
       <a href="#tickets" class="btn-tickets">Get Tickets</a>
+      <button type="button" class="nav__hamburger" id="navHamburger" aria-expanded="false" aria-controls="navMobileMenu" aria-label="Open menu">
+        <span class="nav__hamburger-box">
+          <span class="nav__hamburger-line"></span>
+          <span class="nav__hamburger-line"></span>
+          <span class="nav__hamburger-line"></span>
+        </span>
+      </button>
     </div>
   </nav>
   <div class="nav-placeholder" id="navPlaceholder"></div>
+
+  <!-- Full-screen mobile menu — a sibling of <nav>, not a child, so its
+       position:fixed always resolves against the viewport. (Nesting it
+       inside .nav--sticky, which uses backdrop-filter, would make nav's
+       own small header box the containing block instead.) -->
+  <div class="nav__mobile-menu" id="navMobileMenu">
+    <ul class="nav__mobile-links">
+      <li><a href="#timetable">Timetable</a></li>
+      <li><a href="#attend">Attend</a></li>
+      <li><a href="#venue">Venue</a></li>
+      <li><a href="#sponsors">Sponsors</a></li>
+      <li><a href="#events">Events</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+    <div class="nav__mobile-social">
+      <a href="#" aria-label="X (Twitter)">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.9 2H22l-7.6 8.7L23 22h-6.9l-5.4-7-6.2 7H1.3l8.1-9.3L1 2h7l4.9 6.5L18.9 2zm-2.4 18h1.9L7.6 4H5.6l10.9 16z"/></svg>
+      </a>
+      <a href="#" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2c2.72 0 3.06.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.21.6 1.77 1.16.51.5.9 1.1 1.16 1.77.25.64.42 1.37.47 2.43.05 1.06.06 1.4.06 4.12s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43a4.93 4.93 0 0 1-1.16 1.77c-.5.51-1.1.9-1.77 1.16-.64.25-1.37.42-2.43.47-1.06.05-1.4.06-4.12.06s-3.06-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.93 4.93 0 0 1-1.77-1.16 4.93 4.93 0 0 1-1.16-1.77c-.25-.64-.42-1.37-.47-2.43C2.01 15.06 2 14.72 2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.21 1.16-1.77.5-.51 1.1-.9 1.77-1.16.64-.25 1.37-.42 2.43-.47C8.94 2.01 9.28 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.25A3.25 3.25 0 1 1 12 8.75a3.25 3.25 0 0 1 0 6.5zM17.5 6.25a1.17 1.17 0 1 1 0 2.34 1.17 1.17 0 0 1 0-2.34z"/></svg>
+      </a>
+      <a href="#" aria-label="YouTube">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.5 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.55.46A2.78 2.78 0 0 0 1.5 6.42 29 29 0 0 0 1 11.75a29 29 0 0 0 .5 5.33 2.78 2.78 0 0 0 1.95 1.96C5.12 19.5 12 19.5 12 19.5s6.88 0 8.55-.46a2.78 2.78 0 0 0 1.95-1.96 29 29 0 0 0 .5-5.33 29 29 0 0 0-.5-5.33zM9.75 15.02V8.48l5.75 3.27z"/></svg>
+      </a>
+      <a href="#" aria-label="Official Blog">
+        <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg"><path d="M143.5-143.5Q120-167 120-200t23.5-56.5Q167-280 200-280t56.5 23.5Q280-233 280-200t-23.5 56.5Q233-120 200-120t-56.5-23.5ZM680-120q0-117-44-218.5T516-516q-76-76-177.5-120T120-680v-120q142 0 265 53t216 146q93 93 146 216t53 265H680Zm-240 0q0-67-25-124.5T346-346q-44-44-101.5-69T120-440v-120q92 0 171.5 34.5T431-431q60 60 94.5 139.5T560-120H440Z"/></svg>
+      </a>
+    </div>
+  </div>
 
   <!-- Central content -->
   <div class="hero__body">
@@ -1710,9 +2028,14 @@
 
 </main>
 
-<!-- Wave blending into the footer's navy background — standalone, not part of any section -->
-<div class="section-timetable__wave" aria-hidden="true" style="background:#ffffff;">
-  <img src="assets/timetable-footer-illustration.svg" alt="" />
+<!-- Wave blending into the footer's navy background — standalone, not part of any
+     section. The SVG's shapes don't quite reach the bottom of its own viewBox,
+     leaving a sliver of the wrapper's white background exposed; scaleY crops
+     that sliver off, and position:static (overriding the shared class's
+     position:relative + z-index:1) lets the footer, which follows it in
+     document order, paint over any remaining subpixel seam. -->
+<div class="section-timetable__wave" aria-hidden="true" style="background:#ffffff; overflow:hidden; position:static; margin-bottom:-2px;">
+  <img src="assets/timetable-footer-illustration.svg" alt="" style="transform:scaleY(1.14); transform-origin:top;" />
 </div>
 
 <!-- ── Footer ─────────────────────────────────────────────────── -->
@@ -1872,6 +2195,53 @@
           b.setAttribute('aria-pressed', String(on));
         });
       });
+    });
+  })();
+
+  // ─── Mobile menu (hamburger) ──────────────────────────────────────
+  (function () {
+    const hamburger = document.getElementById('navHamburger');
+    const menu = document.getElementById('navMobileMenu');
+    if (!hamburger || !menu) return;
+
+    function closeMenu() {
+      nav.classList.remove('nav--menu-open');
+      document.body.style.overflow = '';
+      hamburger.setAttribute('aria-expanded', 'false');
+      hamburger.setAttribute('aria-label', 'Open menu');
+      updateNavSticky();
+    }
+    function openMenu() {
+      // Reserve the header's current height before it switches to
+      // position:fixed, so the page content doesn't jump if it wasn't
+      // already sticky.
+      if (!nav.classList.contains('nav--sticky')) {
+        navPlaceholder.style.height = `${nav.offsetHeight}px`;
+      }
+      nav.classList.add('nav--menu-open');
+      document.body.style.overflow = 'hidden';
+      hamburger.setAttribute('aria-expanded', 'true');
+      hamburger.setAttribute('aria-label', 'Close menu');
+    }
+
+    hamburger.addEventListener('click', () => {
+      nav.classList.contains('nav--menu-open') ? closeMenu() : openMenu();
+    });
+
+    menu.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', closeMenu);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!nav.contains(e.target) && !menu.contains(e.target)) closeMenu();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMenu();
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 880) closeMenu();
     });
   })();
 
