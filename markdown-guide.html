@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="en" style="overflow: auto;scrollbar-width: none;-ms-overflow-style: none;">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Markdown Style Guide — PyCon JP 2026</title>
+  <meta name="description" content="How Markdown (.md) content is rendered into the PyCon JP 2026 website — a living reference of every supported element and how it looks." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Satoshi:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #ffffff;
+      color: #1a3156;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Anchor links glide, and land clear of the sticky nav */
+    html { scroll-padding-top: 110px; }
+    @media (prefers-reduced-motion: no-preference) {
+      html { scroll-behavior: smooth; }
+    }
+
+    /* Consistent keyboard focus ring across interactive elements */
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--red);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    /* Thin scroll-progress line pinned to the very top */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--red), #f4a7a2);
+      transform: scaleX(0);
+      transform-origin: left center;
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    /* ─── Design Tokens ────────────────────────────────────────── */
+    :root {
+      --red:       #e1363e;
+      --navy:      #1a3156;
+      --navy-wave: #1a2f55;
+      --bg-cream:  #fdf3f0;
+      --black-80:  rgba(0,0,0,0.8);
+      --black-60:  rgba(0,0,0,0.6);
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    /* ── Nav (shared with the home page) ─────────────────────── */
+    .nav {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 20px 48px;
+      width: 100%;
+      transition: background .25s ease, box-shadow .25s ease, padding .3s ease;
+    }
+    .nav--sticky {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding-top: 12px;
+      padding-bottom: 12px;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      z-index: 100;
+    }
+    .nav-placeholder { height: 0; }
+    .nav__logo {
+      width: 64px;
+      height: 64px;
+      flex-shrink: 0;
+      transition: width .3s ease, height .3s ease;
+    }
+    .nav__logo img { width: 100%; height: 100%; object-fit: contain; }
+    .nav--sticky .nav__logo { width: 48px; height: 48px; }
+    .nav__links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 43px;
+      list-style: none;
+    }
+    .nav__links a {
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+      transition: opacity .18s;
+    }
+    .nav__links a:hover { opacity: 0.7; }
+    .nav__right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 24px;
+    }
+    .nav__lang {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      padding: 3px;
+      background: rgba(0,0,0,0.06);
+      border-radius: 999px;
+      isolation: isolate;
+    }
+    .nav__lang-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: calc(50% - 3px);
+      height: calc(100% - 6px);
+      background: #fff;
+      border-radius: 999px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.14);
+      z-index: -1;
+      transition: transform .34s cubic-bezier(.34,1.45,.5,1);
+    }
+    .nav__lang[data-active="jp"] .nav__lang-thumb { transform: translateX(100%); }
+    .nav__lang button {
+      width: 46px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      text-align: center;
+      color: rgba(0,0,0,0.5);
+      background: transparent;
+      border: none;
+      padding: 5px 0;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: color .25s ease, transform .15s ease;
+    }
+    .nav__lang button:hover { color: rgba(0,0,0,0.8); }
+    .nav__lang button:active { transform: scale(0.92); }
+    .nav__lang button.active { color: var(--red); }
+    .nav__lang button.active:hover { color: var(--red); }
+    .btn-tickets {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--red);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      padding: 14px 32px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background .18s, transform .15s;
+      white-space: nowrap;
+    }
+    .btn-tickets:hover { background: #c9222a; transform: translateY(-1px); }
+
+    /* Animated underline on primary nav links */
+    .nav__links a { position: relative; }
+    .nav__links a::after {
+      content: '';
+      position: absolute;
+      left: 0; bottom: -5px;
+      width: 100%; height: 2px;
+      background: var(--red);
+      border-radius: 2px;
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform .28s cubic-bezier(.22,.61,.36,1);
+    }
+    .nav__links a:hover { opacity: 1; }
+    .nav__links a:hover::after,
+    .nav__links a:focus-visible::after { transform: scaleX(1); }
+
+    .nav--sticky { animation: navDrop .38s cubic-bezier(.22,.61,.36,1); }
+    @keyframes navDrop {
+      from { transform: translateY(-100%); }
+      to   { transform: translateY(0); }
+    }
+
+    /* ── Page header band ─────────────────────────────────────── */
+    .doc-header {
+      position: relative;
+      background: var(--navy);
+      overflow: hidden;
+    }
+    /* Nav on the navy band needs light text + an all-white logo */
+    .doc-header .nav:not(.nav--sticky) .nav__logo img { filter: brightness(0) invert(1); }
+    .doc-header .nav:not(.nav--sticky) .nav__links a,
+    .doc-header .nav:not(.nav--sticky) .nav__hamburger-line { color: #fff; }
+    .doc-header .nav:not(.nav--sticky) .nav__links a { color: rgba(255,255,255,0.92); }
+    .doc-header .nav:not(.nav--sticky) .nav__hamburger-line { background: #fff; }
+    .doc-header .nav:not(.nav--sticky) .nav__lang { background: rgba(255,255,255,0.14); }
+    .doc-header .nav:not(.nav--sticky) .nav__lang button { color: rgba(255,255,255,0.7); }
+    .doc-header .nav:not(.nav--sticky) .nav__lang button.active { color: #fff; }
+    .doc-header .nav:not(.nav--sticky) .nav__lang-thumb { background: var(--red); }
+
+    .doc-header__inner {
+      position: relative;
+      z-index: 5;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 56px 48px 88px;
+      text-align: center;
+    }
+    .doc-header h1 {
+      font-size: clamp(36px, 6vw, 60px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 22px;
+    }
+    .doc-header h1 em { font-style: normal; color: #f4a7a2; }
+    .doc-header p {
+      font-size: 19px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.82);
+      max-width: 620px;
+      margin: 0 auto;
+    }
+    .doc-header__wave { position: relative; z-index: 1; width: 100%; margin-bottom: -1px; }
+    .doc-header__wave svg { width: 100%; height: auto; display: block; }
+
+    /* ── Layout: content + sticky TOC ─────────────────────────── */
+    .doc-body { background: #fff8f6; }
+    .doc-layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 72px 48px 96px;
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 56px;
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: 110px;
+      align-self: start;
+    }
+    .toc__title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 16px;
+    }
+    .toc ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .toc a {
+      display: block;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(26,49,86,0.7);
+      text-decoration: none;
+      border-left: 2px solid rgba(26,49,86,0.1);
+      transition: color .15s, border-color .15s, background .15s;
+    }
+    .toc a:hover {
+      color: var(--red);
+      border-left-color: var(--red);
+      background: rgba(225,54,62,0.05);
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       PROSE — how rendered Markdown looks
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .prose { max-width: 760px; }
+    .prose > * + * { margin-top: 20px; }
+
+    /* Headings */
+    .prose h1 {
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+      margin-top: 8px;
+    }
+    .prose h2 {
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+      margin-top: 64px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(26,49,86,0.12);
+    }
+    .prose h2::after { content: '.'; color: var(--red); }
+    .prose h3 {
+      font-size: 23px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: -0.01em;
+      margin-top: 40px;
+    }
+    .prose h4 {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-top: 32px;
+    }
+    .prose h5 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--navy);
+      margin-top: 28px;
+    }
+    .prose h6 {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-top: 28px;
+    }
+    /* Anchor affordance on hover */
+    .prose h2, .prose h3, .prose h4 { position: relative; }
+    .prose h2 .anchor,
+    .prose h3 .anchor,
+    .prose h4 .anchor {
+      position: absolute;
+      left: -26px;
+      color: rgba(225,54,62,0.5);
+      text-decoration: none;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .prose h2:hover .anchor,
+    .prose h3:hover .anchor,
+    .prose h4:hover .anchor { opacity: 1; }
+
+    /* Body copy */
+    .prose p {
+      font-size: 17px;
+      line-height: 1.8;
+      color: var(--black-80);
+    }
+    .prose a {
+      color: var(--red);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(225,54,62,0.35);
+      transition: border-color .15s, color .15s;
+    }
+    .prose a:hover { border-bottom-color: var(--red); }
+    .prose strong { font-weight: 700; color: var(--navy); }
+    .prose em { font-style: italic; }
+    .prose del { color: rgba(0,0,0,0.4); }
+    .prose mark { background: #fde6b8; color: var(--navy); padding: 1px 4px; border-radius: 3px; }
+    .prose small { font-size: 13px; color: var(--black-60); }
+    .prose sub, .prose sup { font-size: 12px; }
+    .prose kbd {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: #fff;
+      color: var(--navy);
+      border: 1px solid rgba(26,49,86,0.25);
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      padding: 2px 7px;
+    }
+    .prose abbr { text-decoration: underline dotted; cursor: help; }
+
+    /* Lists */
+    .prose ul, .prose ol { padding-left: 26px; }
+    .prose li {
+      font-size: 17px;
+      line-height: 1.75;
+      color: var(--black-80);
+    }
+    .prose li + li { margin-top: 8px; }
+    .prose li > ul, .prose li > ol { margin-top: 8px; }
+    .prose ul > li::marker { color: var(--red); }
+    .prose ol > li::marker { color: var(--red); font-weight: 700; }
+
+    /* Task list (GitHub-flavored) */
+    .prose .task-list { list-style: none; padding-left: 4px; }
+    .prose .task-list li { display: flex; align-items: flex-start; gap: 10px; }
+    .prose .task-list input[type="checkbox"] {
+      appearance: none;
+      width: 20px; height: 20px;
+      margin-top: 2px;
+      flex-shrink: 0;
+      border: 1.5px solid rgba(26,49,86,0.35);
+      border-radius: 5px;
+      background: #fff;
+      position: relative;
+      cursor: default;
+    }
+    .prose .task-list input[type="checkbox"]:checked {
+      background: var(--red);
+      border-color: var(--red);
+    }
+    .prose .task-list input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 6px; top: 2px;
+      width: 5px; height: 10px;
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    /* Definition list */
+    .prose dl { display: grid; grid-template-columns: max-content 1fr; gap: 10px 24px; }
+    .prose dt { font-weight: 700; color: var(--navy); font-size: 16px; }
+    .prose dd { font-size: 16px; color: var(--black-80); line-height: 1.7; }
+
+    /* Blockquote */
+    .prose blockquote {
+      border-left: 4px solid var(--red);
+      background: #fbeae7;
+      border-radius: 0 8px 8px 0;
+      padding: 18px 24px;
+      color: var(--navy);
+    }
+    .prose blockquote p { font-size: 17px; font-style: italic; color: rgba(26,49,86,0.85); }
+    .prose blockquote cite {
+      display: block;
+      margin-top: 10px;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 600;
+      color: var(--red);
+    }
+    .prose blockquote blockquote { margin-top: 14px; background: #f7ddd9; }
+
+    /* Inline code */
+    .prose code {
+      font-family: var(--mono);
+      font-size: 0.86em;
+      background: #f3e2de;
+      color: #b21f27;
+      padding: 2px 6px;
+      border-radius: 5px;
+      border: 1px solid rgba(178,31,39,0.12);
+    }
+
+    /* Code block */
+    .prose pre {
+      background: var(--navy);
+      color: #e7ecf5;
+      border-radius: 12px;
+      padding: 0;
+      overflow: hidden;
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.7;
+      box-shadow: 0 12px 30px rgba(26,49,86,0.18);
+    }
+    .prose pre .code-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 18px;
+      background: rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .prose pre .code-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .prose pre .code-dot--r { background: #ff5f56; }
+    .prose pre .code-dot--y { background: #ffbd2e; }
+    .prose pre .code-dot--g { background: #27c93f; }
+    .prose pre .code-lang {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+    }
+    .prose pre code {
+      display: block;
+      background: none;
+      color: inherit;
+      border: none;
+      padding: 20px 22px;
+      font-size: 14px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    /* Lightweight syntax accents */
+    .tok-key { color: #ff8b7e; }
+    .tok-str { color: #a7e0b8; }
+    .tok-com { color: rgba(255,255,255,0.4); font-style: italic; }
+    .tok-fn  { color: #ffd479; }
+    .tok-num { color: #c9a0ff; }
+
+    /* Tables */
+    .prose .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(26,49,86,0.1); }
+    .prose table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+      background: #fff;
+    }
+    .prose thead th {
+      background: var(--navy);
+      color: #fff;
+      font-weight: 700;
+      text-align: left;
+      padding: 14px 18px;
+      white-space: nowrap;
+    }
+    .prose tbody td {
+      padding: 13px 18px;
+      border-top: 1px solid rgba(26,49,86,0.08);
+      color: var(--black-80);
+    }
+    .prose tbody tr:nth-child(even) { background: #fdf3f0; }
+    .prose tbody tr:hover { background: #fbeae7; }
+    .prose td.num, .prose th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* Horizontal rule — reuses the home page's dotted divider */
+    .prose hr {
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin: 48px 0;
+    }
+    .prose hr::before,
+    .prose hr::after {
+      content: '';
+      height: 2px;
+      flex: 1;
+      max-width: 120px;
+      background: rgba(225,54,62,0.35);
+    }
+    .prose hr { position: relative; }
+
+    /* Images / figures */
+    .prose figure { margin: 8px 0; }
+    .prose img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      display: block;
+      border: 1px solid rgba(26,49,86,0.1);
+    }
+    .prose figcaption {
+      margin-top: 10px;
+      font-size: 14px;
+      color: var(--black-60);
+      text-align: center;
+    }
+    .prose .badge-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .prose .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 4px 11px;
+      border-radius: 999px;
+      background: #fde8e8;
+      color: var(--red);
+      border: none;
+    }
+    .prose .badge--blue { background: #e6ecf5; color: var(--navy); }
+    .prose .badge--green { background: #e6f5ef; color: #1a6645; }
+    .prose .badge--gold { background: #f7edd6; color: #c08a1f; }
+
+    /* Admonitions / callouts (common in docs & MkDocs/GitHub) */
+    .admonition {
+      border-radius: 12px;
+      padding: 18px 22px 18px 20px;
+      border: 1px solid;
+      display: flex;
+      gap: 14px;
+    }
+    .admonition__icon { flex-shrink: 0; width: 24px; height: 24px; }
+    .admonition__icon svg { width: 24px; height: 24px; }
+    .admonition__body { min-width: 0; }
+    .admonition__title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .admonition__body p { font-size: 15px; line-height: 1.7; margin: 0; }
+    .admonition__body p + p { margin-top: 8px; }
+    .admonition--note    { background: #eef3fb; border-color: #cdddf3; }
+    .admonition--note .admonition__title,
+    .admonition--note .admonition__icon svg { color: #2a5db0; fill: #2a5db0; }
+    .admonition--tip     { background: #e9f7f0; border-color: #c4e9d7; }
+    .admonition--tip .admonition__title,
+    .admonition--tip .admonition__icon svg { color: #1a6645; fill: #1a6645; }
+    .admonition--warning { background: #fdf4e3; border-color: #f0e0b6; }
+    .admonition--warning .admonition__title,
+    .admonition--warning .admonition__icon svg { color: #b07d16; fill: #b07d16; }
+    .admonition--important { background: #fbeae7; border-color: #f4c8c2; }
+    .admonition--important .admonition__title,
+    .admonition--important .admonition__icon svg { color: var(--red); fill: var(--red); }
+
+    /* Buttons authored as markdown links with a class */
+    .prose .md-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--red);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: 4px;
+      text-decoration: none;
+      border: none;
+      transition: background .18s, transform .15s;
+    }
+    .prose .md-btn:hover { background: #c9222a; transform: translateY(-1px); }
+    .prose .md-btn--ghost {
+      background: transparent;
+      border: 2px solid var(--navy);
+      color: var(--navy);
+    }
+    .prose .md-btn--ghost:hover { background: var(--navy); color: #fff; }
+
+    /* First element in each section shouldn't push away from the heading */
+    .prose h2 + *, .prose h3 + *, .prose h4 + * { margin-top: 16px; }
+
+    /* Small intro note card */
+    .note-card {
+      background: #fff;
+      border: 1.5px solid rgba(26,49,86,0.1);
+      border-radius: 12px;
+      padding: 22px 26px;
+      margin-bottom: 8px;
+    }
+    .note-card p { font-size: 15px; line-height: 1.7; color: var(--black-80); }
+    .note-card code {
+      font-family: var(--mono);
+      font-size: 0.86em;
+      background: #f3e2de;
+      color: #b21f27;
+      padding: 2px 6px;
+      border-radius: 5px;
+    }
+
+    /* Collapsible <details> / accordion */
+    .prose details {
+      background: #fff;
+      border: 1.5px solid rgba(26,49,86,0.12);
+      border-radius: 12px;
+      padding: 0 22px;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .prose details[open] {
+      border-color: rgba(225,54,62,0.4);
+      box-shadow: 0 6px 22px rgba(26,49,86,0.07);
+    }
+    .prose details + details { margin-top: 12px; }
+    .prose summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 0;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--navy);
+      user-select: none;
+    }
+    .prose summary::-webkit-details-marker { display: none; }
+    .prose summary::before {
+      content: '';
+      width: 10px; height: 10px;
+      border-right: 2px solid var(--red);
+      border-bottom: 2px solid var(--red);
+      transform: rotate(-45deg);
+      transition: transform .22s ease;
+      flex-shrink: 0;
+    }
+    .prose details[open] summary::before { transform: rotate(45deg); }
+    .prose summary:hover { color: var(--red); }
+    .prose details > *:not(summary) { margin-bottom: 18px; }
+    .prose details > summary + * { margin-top: 0; }
+    .prose details p { font-size: 16px; }
+
+    /* Footnotes list */
+    .prose .footnotes {
+      margin-top: 56px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(26,49,86,0.12);
+    }
+    .prose .footnotes ol { padding-left: 20px; }
+    .prose .footnotes li { font-size: 14px; color: var(--black-60); line-height: 1.7; }
+    .prose .footnotes li::marker { font-size: 13px; font-weight: 500; }
+    .prose .footnotes li + li { margin-top: 6px; }
+    .prose .footnotes a { border: none; }
+    .prose .footnotes h6 { margin-bottom: 16px; }
+    .prose .fn-back { margin-left: 4px; }
+    .prose .fn-ref {
+      font-size: 0.75em;
+      font-weight: 700;
+      vertical-align: super;
+      line-height: 0;
+      border: none;
+      padding: 0 1px;
+    }
+    .prose .fn-back { text-decoration: none; }
+
+    /* Button / CTA variations */
+    .prose .btn-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .prose .md-btn--sm { font-size: 13px; padding: 8px 16px; }
+    .prose .md-btn--full { width: 100%; justify-content: center; }
+
+    /* Hard line-break demo box */
+    .prose .linebreak-demo { color: var(--black-80); font-size: 17px; line-height: 1.8; }
+
+    /* Diff code block accents */
+    .tok-add { color: #a7e0b8; display: block; background: rgba(39,201,63,0.12); }
+    .tok-rem { color: #ff8b7e; display: block; background: rgba(255,95,86,0.12); }
+
+    /* Math block */
+    .prose .math {
+      background: #fff;
+      border: 1.5px solid rgba(26,49,86,0.1);
+      border-radius: 10px;
+      padding: 18px 22px;
+      text-align: center;
+      font-family: 'Times New Roman', Georgia, serif;
+      font-size: 20px;
+      color: var(--navy);
+      overflow-x: auto;
+    }
+    .prose .math i { font-style: italic; }
+    .prose .math sup, .prose .math sub { font-size: 0.7em; }
+
+    /* Emoji list stays tidy */
+    .prose .emoji-line { font-size: 17px; line-height: 1.9; }
+
+    /* Keyboard-shortcut table cells */
+    .prose td kbd { white-space: nowrap; }
+
+    /* ── Footer (shared with the home page) ──────────────────── */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.55);
+      padding: 72px 0 0;
+    }
+    footer .container {
+      max-width: none;
+      margin: 0 auto;
+      padding: 0 80px 0 106px;
+    }
+    .footer-top {
+      display: flex;
+      justify-content: flex-start;
+      gap: 48px;
+      padding-bottom: 56px;
+    }
+    .footer-brand { max-width: 280px; flex-shrink: 0; }
+    .footer-logo { width: 220px; margin-bottom: 20px; }
+    .footer-logo img { width: 100%; display: block; }
+    .footer-tagline {
+      font-size: 15px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 24px;
+    }
+    .footer-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px 56px;
+      margin-left: auto;
+      justify-content: flex-end;
+    }
+    .footer-col h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #f2a98f;
+      margin-bottom: 18px;
+    }
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      list-style: none;
+    }
+    .footer-links a {
+      color: rgba(255,255,255,0.85);
+      font-size: 14px;
+      text-decoration: none;
+      transition: color .15s;
+    }
+    .footer-links a:hover { color: #fff; }
+    .footer-illustration { width: 100%; line-height: 0; }
+    .footer-illustration img { width: 100%; display: block; }
+    .footer-bottom {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 0;
+    }
+    .footer-copy { font-size: 14px; color: rgba(255,255,255,0.8); }
+    .footer-copy a { color: inherit; text-decoration: none; }
+    .footer-copy a:hover { color: #fff; text-decoration: underline; }
+    .footer-credit {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 14px;
+      color: rgba(255,255,255,0.8);
+      white-space: nowrap;
+    }
+    .footer-credit a { color: inherit; text-decoration: underline; }
+    .footer-credit a:hover { color: #fff; }
+    .footer-legal {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+    .footer-legal a { color: rgba(255,255,255,0.8); text-decoration: none; }
+    .footer-legal a:hover { color: #fff; }
+    .footer-legal-sep { color: rgba(255,255,255,0.3); }
+    .footer-social { display: flex; gap: 12px; }
+    .footer-social a {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      transition: background .15s;
+    }
+    .footer-social a:hover { background: rgba(255,255,255,0.14); }
+    .footer-social svg { width: 16px; height: 16px; fill: rgba(255,255,255,0.85); }
+
+    @media (max-width: 900px) {
+      .footer-top { flex-direction: column; align-items: center; gap: 40px; text-align: center; }
+      .footer-brand { display: flex; flex-direction: column; align-items: center; max-width: 320px; }
+      .footer-social { justify-content: center; }
+      .footer-nav {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 220px));
+        justify-content: center;
+        gap: 40px 48px;
+        margin-left: 0;
+        width: 100%;
+      }
+      .footer-col { min-width: 0; }
+      .footer-col:nth-child(1) { order: 1; }
+      .footer-col:nth-child(3) { order: 2; }
+      .footer-col:nth-child(2) { order: 3; }
+      .footer-col:nth-child(4) { order: 4; }
+      .footer-col:nth-child(5) { order: 5; grid-column: 1 / -1; }
+    }
+    @media (max-width: 560px) {
+      .footer-bottom { flex-direction: column; align-items: center; text-align: center; gap: 16px; }
+      .footer-legal { justify-content: center; }
+      .footer-credit { position: static; transform: none; margin: 4px 0; }
+    }
+
+    /* ── Mobile nav (shared) ─────────────────────────────────── */
+    .nav__hamburger {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .nav__hamburger:hover { background: rgba(0,0,0,0.05); }
+    .nav__hamburger-box { position: relative; width: 20px; height: 14px; }
+    .nav__hamburger-line {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--navy);
+      transition: transform .28s cubic-bezier(.22,.61,.36,1), opacity .2s ease, top .28s cubic-bezier(.22,.61,.36,1), background-color .25s ease;
+    }
+    .nav__hamburger-line:nth-child(1) { top: 0; }
+    .nav__hamburger-line:nth-child(2) { top: 6px; }
+    .nav__hamburger-line:nth-child(3) { top: 12px; }
+    .nav--menu-open .nav__hamburger-line:nth-child(1) { top: 6px; transform: rotate(45deg); background: var(--navy); }
+    .nav--menu-open .nav__hamburger-line:nth-child(2) { opacity: 0; }
+    .nav--menu-open .nav__hamburger-line:nth-child(3) { top: 6px; transform: rotate(-45deg); background: var(--navy); }
+    .nav__mobile-menu { display: none; }
+    .nav__mobile-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 0;
+      width: 100%;
+      max-width: 320px;
+    }
+    .nav__mobile-links li { width: 100%; text-align: center; }
+    .nav__mobile-links a {
+      display: inline-block;
+      padding: 14px 4px;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+      text-decoration: none;
+      transition: color .2s ease;
+    }
+    .nav__mobile-links a:hover,
+    .nav__mobile-links a:active { color: var(--red); }
+    .nav__mobile-social { display: flex; gap: 12px; }
+    .nav__mobile-social a {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(26,49,86,0.06);
+      transition: background .15s;
+    }
+    .nav__mobile-social a:hover { background: rgba(26,49,86,0.12); }
+    .nav__mobile-social svg { width: 17px; height: 17px; fill: var(--navy); }
+
+    @media (max-width: 960px) {
+      .doc-layout { grid-template-columns: 1fr; gap: 0; padding: 48px 32px 80px; }
+      .toc { display: none; }
+      footer .container { padding: 0 32px; }
+    }
+
+    @media (max-width: 880px) {
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 20px;
+      }
+      .nav--sticky { padding-top: 10px; padding-bottom: 10px; }
+      .nav__logo { width: 48px; height: 48px; }
+      .nav--sticky .nav__logo { width: 40px; height: 40px; }
+      .nav__links { display: none; }
+      .nav__right { gap: 8px; }
+      .nav__lang button { width: 36px; font-size: 14px; }
+      .nav__right .btn-tickets { padding: 10px 16px; font-size: 14px; }
+      .nav__hamburger { display: inline-flex; }
+      .nav--menu-open {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 200;
+        background: #fff;
+        box-shadow: none;
+      }
+      .nav__mobile-menu {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 150;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        padding: 110px 24px 60px;
+        overflow-y: auto;
+        background: #fff;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(-14px);
+        transition: opacity .35s ease, transform .4s cubic-bezier(.22,.61,.36,1), visibility 0s linear .35s;
+      }
+      .nav--menu-open ~ .nav__mobile-menu {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateY(0);
+        transition: opacity .35s ease, transform .4s cubic-bezier(.22,.61,.36,1);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .doc-header__inner { padding: 40px 24px 72px; }
+      .prose h1 { font-size: 32px; }
+      .prose h2 { font-size: 26px; margin-top: 52px; }
+      .prose h3 { font-size: 21px; }
+    }
+
+    @media (max-width: 480px) {
+      .doc-layout { padding: 40px 20px 64px; }
+      footer .container { padding: 0 20px; }
+      .prose p, .prose li { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Scroll progress indicator -->
+<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+<!-- ═══════════════════════════════════════════════
+     HEADER + NAV
+═══════════════════════════════════════════════ -->
+<header class="doc-header">
+  <nav class="nav" id="mainNav">
+    <div class="nav__logo">
+      <a href="index.html" aria-label="PyCon JP 2026 — home">
+        <img src="assets/logo.svg" alt="PyCon JP logo" />
+      </a>
+    </div>
+
+    <ul class="nav__links">
+      <li><a href="index.html#timetable">Timetable</a></li>
+      <li><a href="index.html#attend">Attend</a></li>
+      <li><a href="index.html#venue">Venue</a></li>
+      <li><a href="index.html#sponsors">Sponsors</a></li>
+      <li><a href="index.html#events">Events</a></li>
+      <li><a href="index.html#about">About</a></li>
+    </ul>
+
+    <div class="nav__right">
+      <div class="nav__lang" id="langToggle" data-active="en" role="group" aria-label="Language">
+        <span class="nav__lang-thumb" aria-hidden="true"></span>
+        <button type="button" class="active" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="jp" aria-pressed="false">JP</button>
+      </div>
+      <a href="index.html#tickets" class="btn-tickets">Get Tickets</a>
+      <button type="button" class="nav__hamburger" id="navHamburger" aria-expanded="false" aria-controls="navMobileMenu" aria-label="Open menu">
+        <span class="nav__hamburger-box">
+          <span class="nav__hamburger-line"></span>
+          <span class="nav__hamburger-line"></span>
+          <span class="nav__hamburger-line"></span>
+        </span>
+      </button>
+    </div>
+  </nav>
+  <div class="nav-placeholder" id="navPlaceholder"></div>
+
+  <!-- Full-screen mobile menu -->
+  <div class="nav__mobile-menu" id="navMobileMenu">
+    <ul class="nav__mobile-links">
+      <li><a href="index.html#timetable">Timetable</a></li>
+      <li><a href="index.html#attend">Attend</a></li>
+      <li><a href="index.html#venue">Venue</a></li>
+      <li><a href="index.html#sponsors">Sponsors</a></li>
+      <li><a href="index.html#events">Events</a></li>
+      <li><a href="index.html#about">About</a></li>
+    </ul>
+    <div class="nav__mobile-social">
+      <a href="#" aria-label="X (Twitter)">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.9 2H22l-7.6 8.7L23 22h-6.9l-5.4-7-6.2 7H1.3l8.1-9.3L1 2h7l4.9 6.5L18.9 2zm-2.4 18h1.9L7.6 4H5.6l10.9 16z"/></svg>
+      </a>
+      <a href="#" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2c2.72 0 3.06.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.21.6 1.77 1.16.51.5.9 1.1 1.16 1.77.25.64.42 1.37.47 2.43.05 1.06.06 1.4.06 4.12s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43a4.93 4.93 0 0 1-1.16 1.77c-.5.51-1.1.9-1.77 1.16-.64.25-1.37.42-2.43.47-1.06.05-1.4.06-4.12.06s-3.06-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.93 4.93 0 0 1-1.77-1.16 4.93 4.93 0 0 1-1.16-1.77c-.25-.64-.42-1.37-.47-2.43C2.01 15.06 2 14.72 2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.21 1.16-1.77.5-.51 1.1-.9 1.77-1.16.64-.25 1.37-.42 2.43-.47C8.94 2.01 9.28 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.25A3.25 3.25 0 1 1 12 8.75a3.25 3.25 0 0 1 0 6.5zM17.5 6.25a1.17 1.17 0 1 1 0 2.34 1.17 1.17 0 0 1 0-2.34z"/></svg>
+      </a>
+      <a href="#" aria-label="YouTube">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.5 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.55.46A2.78 2.78 0 0 0 1.5 6.42 29 29 0 0 0 1 11.75a29 29 0 0 0 .5 5.33 2.78 2.78 0 0 0 1.95 1.96C5.12 19.5 12 19.5 12 19.5s6.88 0 8.55-.46a2.78 2.78 0 0 0 1.95-1.96 29 29 0 0 0 .5-5.33 29 29 0 0 0-.5-5.33zM9.75 15.02V8.48l5.75 3.27z"/></svg>
+      </a>
+      <a href="#" aria-label="Official Blog">
+        <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg"><path d="M143.5-143.5Q120-167 120-200t23.5-56.5Q167-280 200-280t56.5 23.5Q280-233 280-200t-23.5 56.5Q233-120 200-120t-56.5-23.5ZM680-120q0-117-44-218.5T516-516q-76-76-177.5-120T120-680v-120q142 0 265 53t216 146q93 93 146 216t53 265H680Zm-240 0q0-67-25-124.5T346-346q-44-44-101.5-69T120-440v-120q92 0 171.5 34.5T431-431q60 60 94.5 139.5T560-120H440Z"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="doc-header__inner">
+    <h1>Markdown <em>Style Guide</em></h1>
+    <p>
+      Every page on this site can be authored as a plain <strong style="color:#fff">.md</strong> file.
+      This is the living reference for how each Markdown element is rendered into the
+      PyCon JP&nbsp;2026 design system — write Markdown, get this.
+    </p>
+  </div>
+
+  <div class="doc-header__wave" aria-hidden="true">
+    <svg viewBox="0 0 1600 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,45 C200,95 400,5 800,45 C1200,85 1400,5 1600,45 L1600,90 L0,90 Z" fill="#fff8f6" />
+    </svg>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════
+     BODY
+═══════════════════════════════════════════════ -->
+<div class="doc-body">
+  <div class="doc-layout">
+
+    <!-- Sticky table of contents -->
+    <aside class="toc" aria-label="On this page">
+      <p class="toc__title">On this page</p>
+      <nav>
+        <ul>
+          <li><a href="#frontmatter">Front matter</a></li>
+          <li><a href="#headings">Headings</a></li>
+          <li><a href="#text">Text &amp; emphasis</a></li>
+          <li><a href="#links">Links &amp; buttons</a></li>
+          <li><a href="#lists">Lists</a></li>
+          <li><a href="#definitions">Definition lists</a></li>
+          <li><a href="#quotes">Blockquotes</a></li>
+          <li><a href="#code">Code</a></li>
+          <li><a href="#tables">Tables</a></li>
+          <li><a href="#callouts">Callouts</a></li>
+          <li><a href="#collapsible">Collapsible / FAQ</a></li>
+          <li><a href="#media">Media &amp; badges</a></li>
+          <li><a href="#keyboard">Keyboard &amp; math</a></li>
+          <li><a href="#misc">Rules &amp; escaping</a></li>
+          <li><a href="#footnotes">Footnotes</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Rendered markdown -->
+    <article class="prose">
+
+      <div class="note-card">
+        <p>
+          👋 <strong>How to read this page.</strong> The left column shows the Markdown syntax you
+          type; the styled result is what visitors see. Write your content in
+          <code>content/*.md</code>, and the site converts it using exactly the styles below.
+        </p>
+      </div>
+
+      <!-- ── Front matter ── -->
+      <h2 id="frontmatter"><a class="anchor" href="#frontmatter" aria-label="Link to this section">#</a>Front matter</h2>
+      <p>
+        Every <code>.md</code> file starts with a YAML front-matter block, fenced by
+        <code>---</code>. It sets the page title, date, and other metadata the site uses to
+        build the page, its URL, and its listing — it is not shown as body content.
+      </p>
+      <pre><span class="code-head"><span class="code-dot code-dot--r"></span><span class="code-dot code-dot--y"></span><span class="code-dot code-dot--g"></span><span class="code-lang">yaml</span></span><code><span class="tok-com">---</span>
+<span class="tok-key">title</span>: <span class="tok-str">"Call for Proposals is open"</span>
+<span class="tok-key">date</span>: <span class="tok-num">2026-03-01</span>
+<span class="tok-key">category</span>: <span class="tok-str">news</span>
+<span class="tok-key">lang</span>: <span class="tok-str">en</span>
+<span class="tok-key">tags</span>: [<span class="tok-str">cfp</span>, <span class="tok-str">speakers</span>]
+<span class="tok-key">draft</span>: <span class="tok-num">false</span>
+<span class="tok-com">---</span></code></pre>
+
+      <!-- ── Headings ── -->
+      <h2 id="headings"><a class="anchor" href="#headings" aria-label="Link to this section">#</a>Headings</h2>
+      <p>Use one <code># H1</code> per page for the title, then nest <code>##</code> through <code>######</code> for structure. Headings also generate the sidebar anchors.</p>
+
+      <h1>H1 — The page title</h1>
+      <h2>H2 — A major section</h2>
+      <h3>H3 — A subsection</h3>
+      <h4>H4 — A minor heading</h4>
+      <h5>H5 — A small label</h5>
+      <h6>H6 — An eyebrow / overline</h6>
+
+      <!-- ── Text ── -->
+      <h2 id="text"><a class="anchor" href="#text" aria-label="Link to this section">#</a>Text &amp; emphasis</h2>
+      <p>
+        This is a normal paragraph. You can make text <strong>bold</strong> with
+        <code>**bold**</code>, <em>italic</em> with <code>*italic*</code>, or
+        <strong><em>both</em></strong>. Strike things out like <del>this old date</del>
+        with <code>~~strikethrough~~</code>, and <mark>highlight</mark> key phrases.
+      </p>
+      <p>
+        Inline extras: <code>inline code</code>, a keyboard hint like <kbd>Ctrl</kbd> +
+        <kbd>K</kbd>, an <abbr title="Python Enhancement Proposal">PEP</abbr> abbreviation,
+        H<sub>2</sub>O subscript, 21<sup>st</sup> superscript, and <small>small print</small>.
+      </p>
+      <p>
+        Python is a great language for beginners and experts alike — and PyCon&nbsp;JP&nbsp;2026
+        is the place to level up, whether you write web apps, crunch data, or teach.
+      </p>
+
+      <!-- ── Links ── -->
+      <h2 id="links"><a class="anchor" href="#links" aria-label="Link to this section">#</a>Links &amp; buttons</h2>
+      <p>
+        Standard links use <code>[label](url)</code>: read the
+        <a href="index.html#about">conference overview</a>, review the
+        <a href="index.html#coc">Code of Conduct</a>, or open the
+        <a href="https://www.python.org" target="_blank" rel="noopener">Python website ↗</a>
+        in a new tab. Auto-links work too:
+        <a href="mailto:info@pycon.jp">info@pycon.jp</a>.
+      </p>
+      <p>Auto-links (a bare URL in angle brackets) render clickable too:
+        <a href="https://2026.pycon.jp" target="_blank" rel="noopener">https://2026.pycon.jp</a>.
+      </p>
+
+      <h3>Buttons &amp; CTAs</h3>
+      <p>Promote a link to a call-to-action button by adding a class. The primary and ghost styles share the same size:</p>
+      <div class="btn-row">
+        <a href="index.html#tickets" class="md-btn">Buy Tickets →</a>
+        <a href="index.html#sponsors" class="md-btn md-btn--ghost">Become a Sponsor</a>
+      </div>
+      <p>A compact variant for inline or secondary actions:</p>
+      <div class="btn-row">
+        <a href="index.html#about" class="md-btn md-btn--sm">Learn more →</a>
+        <a href="index.html#venue" class="md-btn md-btn--ghost md-btn--sm">View venue</a>
+      </div>
+      <p>Or full-width, for a strong page-level call to action:</p>
+      <p>
+        <a href="index.html#tickets" class="md-btn md-btn--full">Register for PyCon JP 2026 →</a>
+      </p>
+
+      <!-- ── Lists ── -->
+      <h2 id="lists"><a class="anchor" href="#lists" aria-label="Link to this section">#</a>Lists</h2>
+
+      <h3>Unordered</h3>
+      <ul>
+        <li>Talks — 30-minute sessions across multiple tracks</li>
+        <li>Posters — informal, hallway-style presentations</li>
+        <li>Sprints — collaborative open-source hacking, including:
+          <ul>
+            <li>CPython core</li>
+            <li>Popular libraries (Django, NumPy, FastAPI)</li>
+            <li>Your own project</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>Ordered</h3>
+      <ol>
+        <li>Buy a ticket</li>
+        <li>Submit a talk proposal (optional)</li>
+        <li>Book your travel to Hiroshima</li>
+        <li>Join us August 21–23</li>
+      </ol>
+
+      <h3>Task list</h3>
+      <ul class="task-list">
+        <li><input type="checkbox" checked disabled /> Announce keynote speakers</li>
+        <li><input type="checkbox" checked disabled /> Open ticket sales</li>
+        <li><input type="checkbox" disabled /> Publish the full timetable</li>
+        <li><input type="checkbox" disabled /> Release the mobile schedule app</li>
+      </ul>
+
+      <!-- ── Definition lists ── -->
+      <h2 id="definitions"><a class="anchor" href="#definitions" aria-label="Link to this section">#</a>Definition lists</h2>
+      <p>Pair a term with its description — ideal for glossaries and FAQ-style key/value content:</p>
+      <dl>
+        <dt>Keynote</dt>
+        <dd>An invited, plenary talk that opens each conference day.</dd>
+        <dt>Sprint</dt>
+        <dd>A hands-on day where attendees contribute to open-source projects together.</dd>
+        <dt>LT</dt>
+        <dd>Lightning Talk — a fast, five-minute talk anyone can give.</dd>
+        <dt>CFP</dt>
+        <dd>Call for Proposals — the window during which you can submit a talk.</dd>
+      </dl>
+
+      <!-- ── Blockquotes ── -->
+      <h2 id="quotes"><a class="anchor" href="#quotes" aria-label="Link to this section">#</a>Blockquotes</h2>
+      <blockquote>
+        <p>“Come for the language, stay for the community.”</p>
+        <cite>— A frequent PyCon JP attendee</cite>
+      </blockquote>
+      <p>Blockquotes can nest, which is handy for quoting a reply:</p>
+      <blockquote>
+        <p>Will there be childcare at the venue this year?</p>
+        <blockquote>
+          <p>Yes — free childcare is available on all three main-conference days. Register when you buy your ticket.</p>
+        </blockquote>
+      </blockquote>
+
+      <!-- ── Code ── -->
+      <h2 id="code"><a class="anchor" href="#code" aria-label="Link to this section">#</a>Code</h2>
+      <p>
+        Use single backticks for <code>inline code</code> — great for names like
+        <code>venv</code>, <code>pip install</code>, or <code>__init__.py</code>.
+        For blocks, fence with triple backticks and a language tag:
+      </p>
+
+      <pre><span class="code-head"><span class="code-dot code-dot--r"></span><span class="code-dot code-dot--y"></span><span class="code-dot code-dot--g"></span><span class="code-lang">python</span></span><code><span class="tok-com"># A tiny greeting for every attendee</span>
+<span class="tok-key">def</span> <span class="tok-fn">welcome</span>(name: <span class="tok-key">str</span>) -&gt; <span class="tok-key">str</span>:
+    <span class="tok-str">"""Return a friendly hello."""</span>
+    <span class="tok-key">return</span> <span class="tok-str">f"Welcome to PyCon JP 2026, {name}!"</span>
+
+
+<span class="tok-key">for</span> attendee <span class="tok-key">in</span> [<span class="tok-str">"Sana"</span>, <span class="tok-str">"Ken"</span>, <span class="tok-str">"Priya"</span>]:
+    <span class="tok-fn">print</span>(welcome(attendee))</code></pre>
+
+      <p>Shell commands render the same way:</p>
+
+      <pre><span class="code-head"><span class="code-dot code-dot--r"></span><span class="code-dot code-dot--y"></span><span class="code-dot code-dot--g"></span><span class="code-lang">bash</span></span><code><span class="tok-com"># Set up your environment before the sprint</span>
+python -m venv .venv
+<span class="tok-key">source</span> .venv/bin/activate
+pip install -r requirements.txt</code></pre>
+
+      <p>A <code>diff</code> block highlights additions and removals — great for changelogs:</p>
+
+      <pre><span class="code-head"><span class="code-dot code-dot--r"></span><span class="code-dot code-dot--y"></span><span class="code-dot code-dot--g"></span><span class="code-lang">diff</span></span><code>  schedule:
+<span class="tok-rem">-   day1: "Talks only"</span>
+<span class="tok-add">+   day1: "Keynote + Talks"</span>
+<span class="tok-add">+   day3: "Sprints"</span></code></pre>
+
+      <!-- ── Tables ── -->
+      <h2 id="tables"><a class="anchor" href="#tables" aria-label="Link to this section">#</a>Tables</h2>
+      <p>Pipe-delimited tables become responsive, striped tables. Columns can be aligned left, center, or right:</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th>Date</th>
+              <th>Focus</th>
+              <th class="num">Tracks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Day 1</td><td>Aug 21</td><td>Talks &amp; Keynote</td><td class="num">5</td></tr>
+            <tr><td>Day 2</td><td>Aug 22</td><td>Talks &amp; Posters</td><td class="num">5</td></tr>
+            <tr><td>Day 3</td><td>Aug 23</td><td>Sprints</td><td class="num">2</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Column alignment is controlled by the <code>:</code> in the header divider row (<code>:---</code> left, <code>:--:</code> center, <code>--:</code> right):</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Left</th>
+              <th style="text-align:center">Center</th>
+              <th class="num">Right</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Ticket</td><td style="text-align:center">Early bird</td><td class="num">¥6,000</td></tr>
+            <tr><td>Ticket</td><td style="text-align:center">Regular</td><td class="num">¥9,000</td></tr>
+            <tr><td>Ticket</td><td style="text-align:center">Student</td><td class="num">¥2,000</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── Callouts ── -->
+      <h2 id="callouts"><a class="anchor" href="#callouts" aria-label="Link to this section">#</a>Callouts &amp; admonitions</h2>
+      <p>Use blockquote-style admonitions (<code>&gt; [!NOTE]</code>, <code>&gt; [!TIP]</code>, etc.) to draw attention:</p>
+
+      <div class="admonition admonition--note">
+        <span class="admonition__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></span>
+        <div class="admonition__body">
+          <div class="admonition__title">Note</div>
+          <p>All main-conference talks are recorded and published on our YouTube channel a few weeks after the event.</p>
+        </div>
+      </div>
+
+      <div class="admonition admonition--tip">
+        <span class="admonition__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 21h6v-1H9v1zm3-19a7 7 0 0 0-4 12.74V17h8v-2.26A7 7 0 0 0 12 2z"/></svg></span>
+        <div class="admonition__body">
+          <div class="admonition__title">Tip</div>
+          <p>Buy your ticket early — <strong>early-bird pricing</strong> ends when the first batch sells out.</p>
+        </div>
+      </div>
+
+      <div class="admonition admonition--warning">
+        <span class="admonition__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg></span>
+        <div class="admonition__body">
+          <div class="admonition__title">Warning</div>
+          <p>The venue has limited on-site parking. Public transport to ICC Hiroshima is strongly recommended.</p>
+        </div>
+      </div>
+
+      <div class="admonition admonition--important">
+        <span class="admonition__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></span>
+        <div class="admonition__body">
+          <div class="admonition__title">Important</div>
+          <p>All attendees, speakers, and sponsors must follow the <a href="index.html#coc">Code of Conduct</a>.</p>
+        </div>
+      </div>
+
+      <!-- ── Collapsible / FAQ ── -->
+      <h2 id="collapsible"><a class="anchor" href="#collapsible" aria-label="Link to this section">#</a>Collapsible sections &amp; FAQ</h2>
+      <p>
+        Wrap content in <code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code> to create
+        click-to-expand sections — perfect for FAQs, long schedules, or optional detail.
+        Click a question to open it:
+      </p>
+
+      <details open>
+        <summary>Do I need to know Japanese to attend?</summary>
+        <p>No. Talks are given in both Japanese and English, and a live translation app is provided for most sessions. Signage and volunteers can help in English throughout the venue.</p>
+      </details>
+
+      <details>
+        <summary>Are tickets refundable?</summary>
+        <p>Tickets are transferable up to one week before the event. Refunds are handled case by case — email <a href="mailto:info@pycon.jp">info@pycon.jp</a> with your order number.</p>
+      </details>
+
+      <details>
+        <summary>What's included with a conference ticket?</summary>
+        <ul>
+          <li>Access to all talks and the keynote on Days 1–2</li>
+          <li>Lunch and coffee on both conference days</li>
+          <li>The sprint day on Day 3</li>
+          <li>Conference swag and a name badge</li>
+        </ul>
+      </details>
+
+      <!-- ── Media & badges ── -->
+      <h2 id="media"><a class="anchor" href="#media" aria-label="Link to this section">#</a>Media &amp; badges</h2>
+      <p>Images use <code>![alt](path)</code> and are automatically rounded and captioned when wrapped in a figure:</p>
+      <figure>
+        <img src="assets/hero-background.png" alt="Soft pink and peach abstract backdrop used across the PyCon JP 2026 site" />
+        <figcaption>Figure 1 — The signature PyCon JP 2026 backdrop.</figcaption>
+      </figure>
+
+      <h3>Badges</h3>
+      <p>Small status pills — handy for talk levels, tags, and sponsor tiers:</p>
+      <div class="badge-row">
+        <span class="badge">Beginner</span>
+        <span class="badge badge--blue">Intermediate</span>
+        <span class="badge badge--green">Community</span>
+        <span class="badge badge--gold">Gold Sponsor</span>
+      </div>
+
+      <h3>Emoji</h3>
+      <p>Shortcodes like <code>:snake:</code> and <code>:rocket:</code> render as emoji:</p>
+      <p class="emoji-line">🐍 Python &nbsp;·&nbsp; 🎤 Talks &nbsp;·&nbsp; 🏫 Workshops &nbsp;·&nbsp; 🍜 Lunch &nbsp;·&nbsp; 🎌 Hiroshima &nbsp;·&nbsp; 🤝 Community &nbsp;·&nbsp; 🚀 Sprints</p>
+
+      <!-- ── Keyboard & math ── -->
+      <h2 id="keyboard"><a class="anchor" href="#keyboard" aria-label="Link to this section">#</a>Keyboard keys &amp; math</h2>
+      <p>Wrap keys in <code>&lt;kbd&gt;</code> for shortcuts, and they work inside tables too:</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Action</th><th>Shortcut</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Open the schedule search</td><td><kbd>Ctrl</kbd> + <kbd>K</kbd></td></tr>
+            <tr><td>Jump to “Now &amp; Next”</td><td><kbd>G</kbd> then <kbd>N</kbd></td></tr>
+            <tr><td>Close a dialog</td><td><kbd>Esc</kbd></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Math (via <code>$...$</code> inline or <code>$$...$$</code> blocks) is rendered for scientific talks:</p>
+      <p>Inline: the complexity is <span class="math" style="display:inline-block;padding:2px 8px;font-size:16px">O(<i>n</i> log <i>n</i>)</span>.</p>
+      <div class="math">
+        <i>e</i><sup><i>iπ</i></sup> + 1 = 0
+      </div>
+
+      <!-- ── Rules & escaping ── -->
+      <h2 id="misc"><a class="anchor" href="#misc" aria-label="Link to this section">#</a>Rules, line breaks &amp; escaping</h2>
+      <p>A horizontal rule (<code>---</code>) renders as the site's dotted divider to break up long content:</p>
+      <hr />
+
+      <h3>Hard line breaks</h3>
+      <p>End a line with two spaces (or a <code>\</code>) to force a break without starting a new paragraph:</p>
+      <p class="linebreak-demo">
+        PyCon JP 2026<br />
+        ICC, Hiroshima<br />
+        August 21–23
+      </p>
+
+      <h3>Escaping &amp; literal characters</h3>
+      <p>
+        Backslash-escape a character to show it literally: <code>\*not italic\*</code> renders as
+        *not italic*, and <code>\#</code> shows a literal #. Use <code>&amp;nbsp;</code> to keep
+        dates like Aug&nbsp;21–23 from wrapping, and <code>&amp;mdash;</code> for an em&nbsp;dash&nbsp;—&nbsp;like this.
+      </p>
+
+      <!-- ── Footnotes ── -->
+      <h2 id="footnotes"><a class="anchor" href="#footnotes" aria-label="Link to this section">#</a>Footnotes</h2>
+      <p>
+        Add a reference with <code>[^1]</code> in your text and define it anywhere in the file.
+        The site collects them at the bottom of the page with links back to each reference.
+        PyCon JP began in 2011<a href="#fn1" id="ref1" class="fn-ref">[1]</a> and now draws over a
+        thousand attendees<a href="#fn2" id="ref2" class="fn-ref">[2]</a> each year.
+      </p>
+
+      <p style="margin-top:8px">That's the complete element set — write Markdown, get this. Happy writing! 🐍</p>
+
+      <section class="footnotes" role="doc-endnotes">
+        <h6 style="margin-top:0">Footnotes</h6>
+        <ol>
+          <li id="fn1">The first PyCon JP was held in Tokyo. <a href="#ref1" class="fn-back" aria-label="Back to reference 1">↩</a></li>
+          <li id="fn2">Attendance figures are from recent in-person editions. <a href="#ref2" class="fn-back" aria-label="Back to reference 2">↩</a></li>
+        </ol>
+      </section>
+
+    </article>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FOOTER (shared with the home page)
+═══════════════════════════════════════════════ -->
+<footer>
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <img src="assets/footer-logo.svg" alt="PyCon JP 2026" />
+        </div>
+        <p class="footer-tagline">Bringing Python people together.</p>
+        <div class="footer-social">
+          <a href="#" aria-label="X (Twitter)">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.9 2H22l-7.6 8.7L23 22h-6.9l-5.4-7-6.2 7H1.3l8.1-9.3L1 2h7l4.9 6.5L18.9 2zm-2.4 18h1.9L7.6 4H5.6l10.9 16z"/></svg>
+          </a>
+          <a href="#" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2c2.72 0 3.06.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.21.6 1.77 1.16.51.5.9 1.1 1.16 1.77.25.64.42 1.37.47 2.43.05 1.06.06 1.4.06 4.12s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43a4.93 4.93 0 0 1-1.16 1.77c-.5.51-1.1.9-1.77 1.16-.64.25-1.37.42-2.43.47-1.06.05-1.4.06-4.12.06s-3.06-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.93 4.93 0 0 1-1.77-1.16 4.93 4.93 0 0 1-1.16-1.77c-.25-.64-.42-1.37-.47-2.43C2.01 15.06 2 14.72 2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.21 1.16-1.77.5-.51 1.1-.9 1.77-1.16.64-.25 1.37-.42 2.43-.47C8.94 2.01 9.28 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.25A3.25 3.25 0 1 1 12 8.75a3.25 3.25 0 0 1 0 6.5zM17.5 6.25a1.17 1.17 0 1 1 0 2.34 1.17 1.17 0 0 1 0-2.34z"/></svg>
+          </a>
+          <a href="#" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.5 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.55.46A2.78 2.78 0 0 0 1.5 6.42 29 29 0 0 0 1 11.75a29 29 0 0 0 .5 5.33 2.78 2.78 0 0 0 1.95 1.96C5.12 19.5 12 19.5 12 19.5s6.88 0 8.55-.46a2.78 2.78 0 0 0 1.95-1.96 29 29 0 0 0 .5-5.33 29 29 0 0 0-.5-5.33zM9.75 15.02V8.48l5.75 3.27z"/></svg>
+          </a>
+          <a href="#" aria-label="Official Blog">
+            <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg"><path d="M143.5-143.5Q120-167 120-200t23.5-56.5Q167-280 200-280t56.5 23.5Q280-233 280-200t-23.5 56.5Q233-120 200-120t-56.5-23.5ZM680-120q0-117-44-218.5T516-516q-76-76-177.5-120T120-680v-120q142 0 265 53t216 146q93 93 146 216t53 265H680Zm-240 0q0-67-25-124.5T346-346q-44-44-101.5-69T120-440v-120q92 0 171.5 34.5T431-431q60 60 94.5 139.5T560-120H440Z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-nav">
+        <div class="footer-col">
+          <h4>Overview.</h4>
+          <ul class="footer-links">
+            <li><a href="index.html#about">Overview</a></li>
+            <li><a href="index.html#keynote">Keynotes</a></li>
+            <li><a href="#">Invited Talk</a></li>
+            <li><a href="index.html#about">What is PyCon JP?</a></li>
+            <li><a href="index.html#about">Organizers</a></li>
+            <li><a href="index.html#coc">Code of Conduct</a></li>
+            <li><a href="#">Logo</a></li>
+            <li><a href="#">Communities</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Attend.</h4>
+          <ul class="footer-links">
+            <li><a href="index.html#tickets">Tickets</a></li>
+            <li><a href="#">Childcare</a></li>
+            <li><a href="#">Travel Grants</a></li>
+            <li><a href="#">Lunch</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Events.</h4>
+          <ul class="footer-links">
+            <li><a href="#">Related Events</a></li>
+            <li><a href="index.html#events">Events</a></li>
+            <li><a href="#">Sprint</a></li>
+            <li><a href="#">Parties</a></li>
+            <li><a href="#">Okonomi Talk (LT)</a></li>
+            <li><a href="#">Ask The Speaker</a></li>
+            <li><a href="#">Translation App</a></li>
+            <li><a href="#">Program App</a></li>
+            <li><a href="#">Session App</a></li>
+            <li><a href="#">Open Space</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Sponsor.</h4>
+          <ul class="footer-links">
+            <li><a href="index.html#sponsors">Sponsors</a></li>
+            <li><a href="index.html#sponsors">Why Sponsor?</a></li>
+            <li><a href="#" target="_blank" rel="noopener">Prospectus ↗</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Venue.</h4>
+          <ul class="footer-links">
+            <li><a href="index.html#venue">Access</a></li>
+            <li><a href="index.html#venue">Hiroshima</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-illustration" aria-hidden="true">
+    <img src="assets/footer-illustration.svg" alt="" />
+  </div>
+
+  <div class="container">
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 PyCon JP Association. All rights reserved.</span>
+      <span class="footer-credit">Designed with ♡ by <a href="https://daksh.design" target="_blank" rel="noopener">daksh.design</a></span>
+      <div class="footer-legal">
+        <a href="#">PyCon JP Association</a>
+        <span class="footer-legal-sep">|</span>
+        <a href="#">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Sticky nav after scrolling past the header nav
+  const nav = document.getElementById('mainNav');
+  const navPlaceholder = document.getElementById('navPlaceholder');
+
+  function updateNavSticky() {
+    const navHeight = nav.classList.contains('nav--sticky')
+      ? parseFloat(navPlaceholder.style.height) || nav.offsetHeight
+      : nav.offsetHeight;
+    const shouldStick = window.scrollY > navHeight;
+    if (shouldStick && !nav.classList.contains('nav--sticky')) {
+      navPlaceholder.style.height = `${nav.offsetHeight}px`;
+      nav.classList.add('nav--sticky');
+    } else if (!shouldStick && nav.classList.contains('nav--sticky')) {
+      nav.classList.remove('nav--sticky');
+      navPlaceholder.style.height = '0';
+    }
+  }
+  window.addEventListener('scroll', updateNavSticky, { passive: true });
+  updateNavSticky();
+
+  // ─── Scroll progress indicator ────────────────────────────────────
+  (function () {
+    const bar = document.getElementById('scrollProgress');
+    if (!bar) return;
+    let ticking = false;
+    function update() {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      const p = max > 0 ? h.scrollTop / max : 0;
+      bar.style.transform = 'scaleX(' + p + ')';
+      ticking = false;
+    }
+    window.addEventListener('scroll', () => {
+      if (!ticking) { requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+    update();
+  })();
+
+  // ─── Language pill toggle (EN / JP) ───────────────────────────────
+  (function () {
+    const toggle = document.getElementById('langToggle');
+    if (!toggle) return;
+    const buttons = toggle.querySelectorAll('button');
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains('active')) return;
+        toggle.dataset.active = btn.dataset.lang;
+        buttons.forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', String(on));
+        });
+      });
+    });
+  })();
+
+  // ─── Mobile menu (hamburger) ──────────────────────────────────────
+  (function () {
+    const hamburger = document.getElementById('navHamburger');
+    const menu = document.getElementById('navMobileMenu');
+    if (!hamburger || !menu) return;
+
+    function closeMenu() {
+      nav.classList.remove('nav--menu-open');
+      document.body.style.overflow = '';
+      hamburger.setAttribute('aria-expanded', 'false');
+      hamburger.setAttribute('aria-label', 'Open menu');
+      updateNavSticky();
+    }
+    function openMenu() {
+      if (!nav.classList.contains('nav--sticky')) {
+        navPlaceholder.style.height = `${nav.offsetHeight}px`;
+      }
+      nav.classList.add('nav--menu-open');
+      document.body.style.overflow = 'hidden';
+      hamburger.setAttribute('aria-expanded', 'true');
+      hamburger.setAttribute('aria-label', 'Close menu');
+    }
+
+    hamburger.addEventListener('click', () => {
+      nav.classList.contains('nav--menu-open') ? closeMenu() : openMenu();
+    });
+    menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+    document.addEventListener('click', (e) => {
+      if (!nav.contains(e.target) && !menu.contains(e.target)) closeMenu();
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+    window.addEventListener('resize', () => { if (window.innerWidth > 880) closeMenu(); });
+  })();
+</script>
+
+</body>
+</html>
