@@ -762,6 +762,19 @@
     /* Keyboard-shortcut table cells */
     .prose td kbd { white-space: nowrap; }
 
+    /* Wave illustration bridging the page background into the footer's navy — shared with index.html */
+    .section-timetable__wave {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      margin-bottom: -1px;
+    }
+    .section-timetable__wave img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
     /* ── Footer (shared with the home page) ──────────────────── */
     footer {
       background: var(--navy);
@@ -1067,7 +1080,7 @@
     </div>
 
     <ul class="nav__links">
-      <li><a href="index.html#timetable">Timetable</a></li>
+      <li><a href="timetable.html">Timetable</a></li>
       <li><a href="index.html#attend">Attend</a></li>
       <li><a href="index.html#venue">Venue</a></li>
       <li><a href="index.html#sponsors">Sponsors</a></li>
@@ -1096,7 +1109,7 @@
   <!-- Full-screen mobile menu -->
   <div class="nav__mobile-menu" id="navMobileMenu">
     <ul class="nav__mobile-links">
-      <li><a href="index.html#timetable">Timetable</a></li>
+      <li><a href="timetable.html">Timetable</a></li>
       <li><a href="index.html#attend">Attend</a></li>
       <li><a href="index.html#venue">Venue</a></li>
       <li><a href="index.html#sponsors">Sponsors</a></li>
@@ -1527,6 +1540,11 @@ pip install -r requirements.txt</code></pre>
 
     </article>
   </div>
+</div>
+
+<!-- Wave blending into the footer's navy background — same illustration used site-wide -->
+<div class="section-timetable__wave" aria-hidden="true" style="background:#fff8f6; overflow:hidden; position:static; margin-bottom:-2px;">
+  <img src="assets/timetable-footer-illustration.svg" alt="" style="transform:scaleY(1.14); transform-origin:top;" />
 </div>
 
 <!-- ═══════════════════════════════════════════════

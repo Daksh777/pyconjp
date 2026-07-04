@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="en" style="overflow: auto;scrollbar-width: none;-ms-overflow-style: none;">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timetable — PyCon JP 2026</title>
+  <meta name="description" content="The full two-day session schedule for PyCon JP 2026 in Hiroshima — browse by day, track, and time." />
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #ffffff;
+      color: #1a3156;
+      -webkit-font-smoothing: antialiased;
+    }
+    html { scroll-padding-top: 150px; }
+    @media (prefers-reduced-motion: no-preference) {
+      html { scroll-behavior: smooth; }
+    }
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--red);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--red), #f4a7a2);
+      transform: scaleX(0);
+      transform-origin: left center;
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    /* ─── Design Tokens ────────────────────────────────────────── */
+    :root {
+      --red:       #e1363e;
+      --navy:      #1a3156;
+      --navy-wave: #1a2f55;
+      --bg-cream:  #fdf3f0;
+      --black-80:  rgba(0,0,0,0.8);
+      --black-60:  rgba(0,0,0,0.6);
+      --track-phoenix: #e1363e;
+      --track-dahlia1: #1a3156;
+      --track-dahlia2: #1a6645;
+      --track-ran:     #c08a1f;
+    }
+
+    /* ── Nav (shared) ───────────────────────────────────────────── */
+    .nav {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 20px 48px;
+      width: 100%;
+      transition: background .25s ease, box-shadow .25s ease, padding .3s ease;
+    }
+    .nav--sticky {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding-top: 12px;
+      padding-bottom: 12px;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      z-index: 100;
+      animation: navDrop .38s cubic-bezier(.22,.61,.36,1);
+    }
+    @keyframes navDrop { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+    .nav-placeholder { height: 0; }
+    .nav__logo {
+      width: 64px;
+      height: 64px;
+      flex-shrink: 0;
+      transition: width .3s ease, height .3s ease;
+    }
+    .nav__logo img { width: 100%; height: 100%; object-fit: contain; }
+    .nav--sticky .nav__logo { width: 48px; height: 48px; }
+    .nav__links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 43px;
+      list-style: none;
+    }
+    .nav__links a {
+      position: relative;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+      transition: opacity .18s;
+    }
+    .nav__links a::after {
+      content: '';
+      position: absolute;
+      left: 0; bottom: -5px;
+      width: 100%; height: 2px;
+      background: var(--red);
+      border-radius: 2px;
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform .28s cubic-bezier(.22,.61,.36,1);
+    }
+    .nav__links a:hover { opacity: 1; }
+    .nav__links a:hover::after,
+    .nav__links a:focus-visible::after,
+    .nav__links a.is-current::after { transform: scaleX(1); }
+    .nav__links a.is-current { opacity: 1; color: var(--red); }
+    .nav__right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 24px;
+    }
+    .nav__lang {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      padding: 3px;
+      background: rgba(0,0,0,0.06);
+      border-radius: 999px;
+      isolation: isolate;
+    }
+    .nav__lang-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: calc(50% - 3px);
+      height: calc(100% - 6px);
+      background: #fff;
+      border-radius: 999px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.14);
+      z-index: -1;
+      transition: transform .34s cubic-bezier(.34,1.45,.5,1);
+    }
+    .nav__lang[data-active="jp"] .nav__lang-thumb { transform: translateX(100%); }
+    .nav__lang button {
+      width: 46px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      text-align: center;
+      color: rgba(0,0,0,0.5);
+      background: transparent;
+      border: none;
+      padding: 5px 0;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: color .25s ease, transform .15s ease;
+    }
+    .nav__lang button:hover { color: rgba(0,0,0,0.8); }
+    .nav__lang button:active { transform: scale(0.92); }
+    .nav__lang button.active { color: var(--red); }
+    .nav__lang button.active:hover { color: var(--red); }
+    .btn-tickets {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--red);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      padding: 14px 32px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background .18s, transform .15s;
+      white-space: nowrap;
+    }
+    .btn-tickets:hover { background: #c9222a; transform: translateY(-1px); }
+
+    /* ── Page header band (navy, shared with doc pages) ─────────── */
+    .doc-header {
+      position: relative;
+      background: var(--navy);
+      overflow: hidden;
+    }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__logo img { filter: brightness(0) invert(1); }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__hamburger-line { background: #fff; }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__links a { color: rgba(255,255,255,0.92); }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__links a.is-current { color: #f4a7a2; }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__lang { background: rgba(255,255,255,0.14); }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__lang button { color: rgba(255,255,255,0.7); }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__lang button.active { color: #fff; }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__lang-thumb { background: var(--red); }
+
+    .doc-header__inner {
+      position: relative;
+      z-index: 5;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 56px 48px 64px;
+      text-align: center;
+    }
+    .doc-header h1 {
+      font-size: clamp(36px, 6vw, 60px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 18px;
+    }
+    .doc-header h1 em { font-style: normal; color: #f4a7a2; }
+    .doc-header p {
+      font-size: 19px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.82);
+      max-width: 620px;
+      margin: 0 auto 28px;
+    }
+    .doc-header__meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .doc-header__meta-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.85);
+    }
+    .doc-header__meta-item svg { width: 18px; height: 18px; fill: #f4a7a2; flex-shrink: 0; }
+    .doc-header__wave { position: relative; z-index: 1; width: 100%; margin-bottom: -1px; }
+    .doc-header__wave svg { width: 100%; height: auto; display: block; }
+
+    /* ── Body & shared container ─────────────────────────────────── */
+    /* padding (not margin) so the wave/footer transition below never loses this
+       background to margin collapse through an unpadded parent */
+    .doc-body { background: #fff8f6; padding-bottom: 80px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TIMETABLE CONTROLS — sticky day tabs, track filter, legend
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .tt-controls-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255,248,246,0.94);
+      backdrop-filter: blur(8px);
+      padding: 20px 0;
+    }
+    .tt-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 16px 20px;
+    }
+    .tt-daytabs {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      padding: 4px;
+      background: rgba(26,49,86,0.07);
+      border-radius: 999px;
+      isolation: isolate;
+      flex-shrink: 0;
+    }
+    .tt-daytabs__thumb {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: calc(50% - 4px);
+      height: calc(100% - 8px);
+      background: var(--navy);
+      border-radius: 999px;
+      z-index: -1;
+      transition: transform .34s cubic-bezier(.34,1.45,.5,1);
+    }
+    .tt-daytabs[data-active="2"] .tt-daytabs__thumb { transform: translateX(100%); }
+    .tt-daytabs button {
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--navy);
+      background: transparent;
+      border: none;
+      padding: 11px 22px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: color .25s ease;
+      white-space: nowrap;
+    }
+    .tt-daytabs button.active { color: #fff; }
+    .tt-daytabs button .sub { font-weight: 500; opacity: .75; margin-left: 5px; }
+
+    .tt-tracks {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tt-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      background: #fff;
+      border: 1.5px solid rgba(26,49,86,0.14);
+      padding: 8px 15px 8px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: border-color .18s, background .18s, color .18s;
+    }
+    .tt-chip__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--navy); flex-shrink: 0; }
+    .tt-chip[data-track="phoenix"] .tt-chip__dot { background: var(--track-phoenix); }
+    .tt-chip[data-track="dahlia1"] .tt-chip__dot { background: var(--track-dahlia1); }
+    .tt-chip[data-track="dahlia2"] .tt-chip__dot { background: var(--track-dahlia2); }
+    .tt-chip[data-track="ran"]     .tt-chip__dot { background: var(--track-ran); }
+    .tt-chip:hover { border-color: rgba(225,54,62,0.5); }
+    .tt-chip.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+    .tt-chip.active .tt-chip__dot { background: #fff; }
+
+    .tt-controls__sep {
+      width: 1px;
+      height: 28px;
+      background: rgba(26,49,86,0.14);
+      flex-shrink: 0;
+    }
+    @media (max-width: 900px) { .tt-controls__sep { display: none; } }
+
+    @media (max-width: 900px) {
+      .tt-tracks { order: 3; width: 100%; justify-content: center; }
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TIMETABLE BODY
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .tt-day { padding: 8px 0 8px; }
+
+    .tt-slot-wrap { margin-bottom: 32px; }
+    .tt-slot-wrap:last-child { margin-bottom: 0; }
+
+    .tt-slot-heading {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 0 0 18px;
+    }
+    .tt-slot-heading__time {
+      font-size: 21px;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+    .tt-slot-heading::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(26,49,86,0.12);
+    }
+
+    .tt-slot {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .tt-card {
+      background: #fff;
+      border: 1.5px solid rgba(26,49,86,0.1);
+      border-radius: 12px;
+      padding: 20px 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color .18s, box-shadow .18s, transform .18s, opacity .18s;
+    }
+    .tt-card:hover {
+      border-color: var(--red);
+      box-shadow: 0 8px 24px rgba(225,54,62,0.1);
+      transform: translateY(-2px);
+    }
+    .tt-card.is-hidden { display: none; }
+
+    .tt-card__tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .tt-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 4px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .tt-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .tt-tag--room { background: rgba(26,49,86,0.07); color: var(--navy); }
+    .tt-tag--beginner { background: #e6f5ef; color: #1a6645; }
+    .tt-tag--intermediate { background: #eef3fb; color: #2a5db0; }
+    .tt-tag--advanced { background: #f7edd6; color: #c08a1f; }
+    .tt-tag--lang { background: rgba(0,0,0,0.05); color: rgba(0,0,0,0.55); }
+
+    .tt-card__title {
+      font-size: 16.5px;
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1.42;
+      letter-spacing: -0.01em;
+    }
+    .tt-card__time {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: rgba(0,0,0,0.45);
+    }
+    .tt-card__speaker {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(26,49,86,0.08);
+    }
+    .tt-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+    }
+    .tt-speaker-name { font-size: 13.5px; font-weight: 600; color: var(--navy); }
+
+    .tt-card[data-track="phoenix"] .tt-dot { background: var(--track-phoenix); }
+    .tt-card[data-track="dahlia1"] .tt-dot { background: var(--track-dahlia1); }
+    .tt-card[data-track="dahlia2"] .tt-dot { background: var(--track-dahlia2); }
+    .tt-card[data-track="ran"]     .tt-dot { background: var(--track-ran); }
+
+    /* Full-width banner blocks: registration / breaks / lunch / lightning / closing / party */
+    .tt-full {
+      grid-column: 1 / -1;
+      background: #f3ece8;
+      border: 1.5px dashed rgba(26,49,86,0.18);
+      border-radius: 12px;
+      padding: 20px 28px;
+      text-align: center;
+    }
+    .tt-full__time {
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 6px;
+    }
+    .tt-full__title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: -0.01em;
+    }
+    .tt-full__sub {
+      font-size: 13.5px;
+      color: rgba(0,0,0,0.55);
+      margin-top: 4px;
+    }
+    .tt-full--party {
+      background: linear-gradient(135deg, rgba(225,54,62,0.08), rgba(26,49,86,0.07));
+      border-style: solid;
+      border-color: rgba(225,54,62,0.25);
+    }
+
+    /* Keynote — special highlighted card with real speaker photo */
+    .tt-keynote {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      background: #fff;
+      border: 1.5px solid rgba(225,54,62,0.3);
+      box-shadow: 0 10px 32px rgba(225,54,62,0.09);
+      border-radius: 14px;
+      padding: 26px 32px;
+      text-align: left;
+    }
+    .tt-keynote__photo {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: #E8B4B1;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .tt-keynote__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tt-keynote__body { min-width: 0; }
+    .tt-keynote__label {
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 6px;
+    }
+    .tt-keynote__name { font-size: 20px; font-weight: 700; color: var(--navy); letter-spacing: -0.01em; }
+    .tt-keynote__role { font-size: 14px; font-weight: 500; color: rgba(0,0,0,0.6); margin-top: 3px; }
+    .tt-keynote__topic { font-size: 13.5px; font-weight: 600; color: rgba(0,0,0,0.45); margin-top: 8px; }
+    .tt-keynote__time {
+      margin-left: auto;
+      flex-shrink: 0;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(0,0,0,0.45);
+      white-space: nowrap;
+    }
+
+    /* Empty state when a filter matches nothing in a slot */
+    .tt-slot-wrap.is-empty { display: none; }
+
+    /* "Also happening" — poster session + sprint day, same on every day so it sits outside the tabs */
+    .tt-extra {
+      margin: 64px 0 0;
+      padding-top: 40px;
+      border-top: 1px solid rgba(26,49,86,0.12);
+    }
+    .tt-extra__label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 20px;
+    }
+
+    /* Poster session / Sprint day info cards */
+    .venue-card {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border: 1.5px solid rgba(26,49,86,0.1);
+      border-radius: 8px;
+      padding: 28px 36px;
+      margin-bottom: 20px;
+    }
+    .tt-extra .venue-card:last-child { margin-bottom: 0; }
+    .venue-card__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #fde8e8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-right: 20px;
+    }
+    .venue-card__icon svg { width: 22px; height: 22px; fill: var(--red); }
+    .venue-card__label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.4);
+      margin-bottom: 4px;
+    }
+    .venue-card__name { display: block; font-size: 16px; font-weight: 700; color: var(--navy); line-height: 1.4; }
+    .venue-card__desc { font-size: 14px; color: rgba(0,0,0,0.6); margin-top: 4px; line-height: 1.6; max-width: 560px; }
+    .venue-card__cta {
+      margin-left: auto;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--red);
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .venue-card__cta:hover { text-decoration: underline; }
+
+    @media (max-width: 760px) {
+      .venue-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .venue-card__icon { margin-right: 0; }
+      .venue-card__cta { margin-left: 0; }
+    }
+
+    @media (max-width: 900px) {
+      .tt-slot { grid-template-columns: repeat(2, 1fr); }
+      .tt-keynote { flex-wrap: wrap; }
+      .tt-keynote__time { margin-left: 0; text-align: left; }
+    }
+    @media (max-width: 620px) {
+      .tt-slot { grid-template-columns: 1fr; }
+      .tt-slot-heading__time { font-size: 18px; }
+    }
+
+    /* Wave illustration bridging the page background into the footer's navy — shared with index.html */
+    .section-timetable__wave {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      margin-bottom: -1px;
+    }
+    .section-timetable__wave img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* ── Footer (shared) ─────────────────────────────────────────── */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.55);
+      padding: 72px 0 0;
+    }
+    footer .container { max-width: none; padding: 0 80px 0 106px; }
+    .footer-top { display: flex; justify-content: flex-start; gap: 48px; padding-bottom: 56px; }
+    .footer-brand { max-width: 280px; flex-shrink: 0; }
+    .footer-logo { width: 220px; margin-bottom: 20px; }
+    .footer-logo img { width: 100%; display: block; }
+    .footer-tagline { font-size: 15px; line-height: 1.7; color: rgba(255,255,255,0.7); margin-bottom: 24px; }
+    .footer-nav { display: flex; flex-wrap: wrap; gap: 40px 56px; margin-left: auto; justify-content: flex-end; }
+    .footer-col h4 { font-size: 14px; font-weight: 700; color: #f2a98f; margin-bottom: 18px; }
+    .footer-links { display: flex; flex-direction: column; gap: 12px; list-style: none; }
+    .footer-links a { color: rgba(255,255,255,0.85); font-size: 14px; text-decoration: none; transition: color .15s; }
+    .footer-links a:hover { color: #fff; }
+    .footer-illustration { width: 100%; line-height: 0; }
+    .footer-illustration img { width: 100%; display: block; }
+    .footer-bottom { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 0; }
+    .footer-copy { font-size: 14px; color: rgba(255,255,255,0.8); }
+    .footer-copy a { color: inherit; text-decoration: none; }
+    .footer-copy a:hover { color: #fff; text-decoration: underline; }
+    .footer-credit {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      font-size: 14px; color: rgba(255,255,255,0.8); white-space: nowrap;
+    }
+    .footer-credit a { color: inherit; text-decoration: underline; }
+    .footer-credit a:hover { color: #fff; }
+    .footer-legal { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+    .footer-legal a { color: rgba(255,255,255,0.8); text-decoration: none; }
+    .footer-legal a:hover { color: #fff; }
+    .footer-legal-sep { color: rgba(255,255,255,0.3); }
+    .footer-social { display: flex; gap: 12px; }
+    .footer-social a {
+      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; background: rgba(255,255,255,0.06); transition: background .15s;
+    }
+    .footer-social a:hover { background: rgba(255,255,255,0.14); }
+    .footer-social svg { width: 16px; height: 16px; fill: rgba(255,255,255,0.85); }
+
+    @media (max-width: 900px) {
+      .footer-top { flex-direction: column; align-items: center; gap: 40px; text-align: center; }
+      .footer-brand { display: flex; flex-direction: column; align-items: center; max-width: 320px; }
+      .footer-social { justify-content: center; }
+      .footer-nav {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 220px));
+        justify-content: center; gap: 40px 48px; margin-left: 0; width: 100%;
+      }
+      .footer-col { min-width: 0; }
+      .footer-col:nth-child(1) { order: 1; }
+      .footer-col:nth-child(3) { order: 2; }
+      .footer-col:nth-child(2) { order: 3; }
+      .footer-col:nth-child(4) { order: 4; }
+      .footer-col:nth-child(5) { order: 5; grid-column: 1 / -1; }
+    }
+    @media (max-width: 560px) {
+      .footer-bottom { flex-direction: column; align-items: center; text-align: center; gap: 16px; }
+      .footer-legal { justify-content: center; }
+      .footer-credit { position: static; transform: none; margin: 4px 0; }
+    }
+
+    /* ── Mobile nav (shared) ─────────────────────────────────────── */
+    .nav__hamburger {
+      display: none; align-items: center; justify-content: center;
+      width: 38px; height: 38px; padding: 0; background: transparent; border: none;
+      border-radius: 6px; cursor: pointer; flex-shrink: 0;
+    }
+    .nav__hamburger:hover { background: rgba(0,0,0,0.05); }
+    .nav__hamburger-box { position: relative; width: 20px; height: 14px; }
+    .nav__hamburger-line {
+      position: absolute; left: 0; width: 100%; height: 2px; border-radius: 2px; background: var(--navy);
+      transition: transform .28s cubic-bezier(.22,.61,.36,1), opacity .2s ease, top .28s cubic-bezier(.22,.61,.36,1), background-color .25s ease;
+    }
+    .nav__hamburger-line:nth-child(1) { top: 0; }
+    .nav__hamburger-line:nth-child(2) { top: 6px; }
+    .nav__hamburger-line:nth-child(3) { top: 12px; }
+    .nav--menu-open .nav__hamburger-line:nth-child(1) { top: 6px; transform: rotate(45deg); background: var(--navy); }
+    .nav--menu-open .nav__hamburger-line:nth-child(2) { opacity: 0; }
+    .nav--menu-open .nav__hamburger-line:nth-child(3) { top: 6px; transform: rotate(-45deg); background: var(--navy); }
+    .nav__mobile-menu { display: none; }
+    .nav__mobile-links { list-style: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0; width: 100%; max-width: 320px; }
+    .nav__mobile-links li { width: 100%; text-align: center; }
+    .nav__mobile-links a {
+      display: inline-block; padding: 14px 4px; font-size: 28px; font-weight: 700;
+      letter-spacing: -0.02em; color: var(--navy); text-decoration: none; transition: color .2s ease;
+    }
+    .nav__mobile-links a:hover, .nav__mobile-links a:active { color: var(--red); }
+    .nav__mobile-links a.is-current { color: var(--red); }
+    .nav__mobile-social { display: flex; gap: 12px; }
+    .nav__mobile-social a {
+      width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; background: rgba(26,49,86,0.06); transition: background .15s;
+    }
+    .nav__mobile-social a:hover { background: rgba(26,49,86,0.12); }
+    .nav__mobile-social svg { width: 17px; height: 17px; fill: var(--navy); }
+
+    @media (max-width: 880px) {
+      .nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; }
+      .nav--sticky { padding-top: 10px; padding-bottom: 10px; }
+      .nav__logo { width: 48px; height: 48px; }
+      .nav--sticky .nav__logo { width: 40px; height: 40px; }
+      .nav__links { display: none; }
+      .nav__right { gap: 8px; }
+      .nav__lang button { width: 36px; font-size: 14px; }
+      .nav__right .btn-tickets { padding: 10px 16px; font-size: 14px; }
+      .nav__hamburger { display: inline-flex; }
+      .nav--menu-open { position: fixed; top: 0; left: 0; width: 100%; z-index: 200; background: #fff; box-shadow: none; }
+      .nav__mobile-menu {
+        display: flex; position: fixed; inset: 0; z-index: 150; flex-direction: column; align-items: center;
+        justify-content: center; gap: 28px; padding: 110px 24px 60px; overflow-y: auto; background: #fff;
+        opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-14px);
+        transition: opacity .35s ease, transform .4s cubic-bezier(.22,.61,.36,1), visibility 0s linear .35s;
+      }
+      .nav--menu-open ~ .nav__mobile-menu {
+        opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0);
+        transition: opacity .35s ease, transform .4s cubic-bezier(.22,.61,.36,1);
+      }
+      .doc-header__inner { padding: 40px 24px 48px; }
+      .tt-controls-wrap { top: 0; }
+    }
+
+    @media (max-width: 760px) {
+      .doc-header p { font-size: 17px; }
+      footer .container { padding: 0 32px; }
+    }
+    @media (max-width: 480px) {
+      footer .container { padding: 0 20px; }
+      .container { padding: 0 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+<!-- ═══════════════════════════════════════════════
+     HEADER + NAV
+═══════════════════════════════════════════════ -->
+<header class="doc-header">
+  <nav class="nav" id="mainNav">
+    <div class="nav__logo">
+      <a href="index.html" aria-label="PyCon JP 2026 — home">
+        <img src="assets/logo.svg" alt="PyCon JP logo" />
+      </a>
+    </div>
+
+    <ul class="nav__links">
+      <li><a href="timetable.html" class="is-current">Timetable</a></li>
+      <li><a href="index.html#attend">Attend</a></li>
+      <li><a href="index.html#venue">Venue</a></li>
+      <li><a href="index.html#sponsors">Sponsors</a></li>
+      <li><a href="index.html#events">Events</a></li>
+      <li><a href="index.html#about">About</a></li>
+    </ul>
+
+    <div class="nav__right">
+      <div class="nav__lang" id="langToggle" data-active="en" role="group" aria-label="Language">
+        <span class="nav__lang-thumb" aria-hidden="true"></span>
+        <button type="button" class="active" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="jp" aria-pressed="false">JP</button>
+      </div>
+      <a href="index.html#tickets" class="btn-tickets">Get Tickets</a>
+      <button type="button" class="nav__hamburger" id="navHamburger" aria-expanded="false" aria-controls="navMobileMenu" aria-label="Open menu">
+        <span class="nav__hamburger-box">
+          <span class="nav__hamburger-line"></span>
+          <span class="nav__hamburger-line"></span>
+          <span class="nav__hamburger-line"></span>
+        </span>
+      </button>
+    </div>
+  </nav>
+  <div class="nav-placeholder" id="navPlaceholder"></div>
+
+  <div class="nav__mobile-menu" id="navMobileMenu">
+    <ul class="nav__mobile-links">
+      <li><a href="timetable.html" class="is-current">Timetable</a></li>
+      <li><a href="index.html#attend">Attend</a></li>
+      <li><a href="index.html#venue">Venue</a></li>
+      <li><a href="index.html#sponsors">Sponsors</a></li>
+      <li><a href="index.html#events">Events</a></li>
+      <li><a href="index.html#about">About</a></li>
+    </ul>
+    <div class="nav__mobile-social">
+      <a href="#" aria-label="X (Twitter)">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.9 2H22l-7.6 8.7L23 22h-6.9l-5.4-7-6.2 7H1.3l8.1-9.3L1 2h7l4.9 6.5L18.9 2zm-2.4 18h1.9L7.6 4H5.6l10.9 16z"/></svg>
+      </a>
+      <a href="#" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2c2.72 0 3.06.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.21.6 1.77 1.16.51.5.9 1.1 1.16 1.77.25.64.42 1.37.47 2.43.05 1.06.06 1.4.06 4.12s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43a4.93 4.93 0 0 1-1.16 1.77c-.5.51-1.1.9-1.77 1.16-.64.25-1.37.42-2.43.47-1.06.05-1.4.06-4.12.06s-3.06-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.93 4.93 0 0 1-1.77-1.16 4.93 4.93 0 0 1-1.16-1.77c-.25-.64-.42-1.37-.47-2.43C2.01 15.06 2 14.72 2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.21 1.16-1.77.5-.51 1.1-.9 1.77-1.16.64-.25 1.37-.42 2.43-.47C8.94 2.01 9.28 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.25A3.25 3.25 0 1 1 12 8.75a3.25 3.25 0 0 1 0 6.5zM17.5 6.25a1.17 1.17 0 1 1 0 2.34 1.17 1.17 0 0 1 0-2.34z"/></svg>
+      </a>
+      <a href="#" aria-label="YouTube">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.5 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.55.46A2.78 2.78 0 0 0 1.5 6.42 29 29 0 0 0 1 11.75a29 29 0 0 0 .5 5.33 2.78 2.78 0 0 0 1.95 1.96C5.12 19.5 12 19.5 12 19.5s6.88 0 8.55-.46a2.78 2.78 0 0 0 1.95-1.96 29 29 0 0 0 .5-5.33 29 29 0 0 0-.5-5.33zM9.75 15.02V8.48l5.75 3.27z"/></svg>
+      </a>
+      <a href="#" aria-label="Official Blog">
+        <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg"><path d="M143.5-143.5Q120-167 120-200t23.5-56.5Q167-280 200-280t56.5 23.5Q280-233 280-200t-23.5 56.5Q233-120 200-120t-56.5-23.5ZM680-120q0-117-44-218.5T516-516q-76-76-177.5-120T120-680v-120q142 0 265 53t216 146q93 93 146 216t53 265H680Zm-240 0q0-67-25-124.5T346-346q-44-44-101.5-69T120-440v-120q92 0 171.5 34.5T431-431q60 60 94.5 139.5T560-120H440Z"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="doc-header__inner">
+    <h1>Full <em>Timetable</em></h1>
+    <p>
+      Two days of talks across four rooms at the Hiroshima International Conference Center.
+      Browse by day, filter by room, and plan your PyCon&nbsp;JP&nbsp;2026.
+    </p>
+    <div class="doc-header__meta">
+      <span class="doc-header__meta-item">
+        <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg"><path d="M480-480q33 0 56.5-23.5T560-560q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560q0 33 23.5 56.5T480-480ZM480-80Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Z"/></svg>
+        International Conference Center, Hiroshima
+      </span>
+      <span class="doc-header__meta-item">
+        <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg"><path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Z"/></svg>
+        August 21–22, 2026
+      </span>
+    </div>
+  </div>
+
+  <div class="doc-header__wave" aria-hidden="true">
+    <svg viewBox="0 0 1600 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,45 C200,95 400,5 800,45 C1200,85 1400,5 1600,45 L1600,90 L0,90 Z" fill="#fff8f6" />
+    </svg>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════
+     TIMETABLE
+═══════════════════════════════════════════════ -->
+<div class="doc-body">
+
+  <div class="tt-controls-wrap">
+    <div class="container">
+      <div class="tt-controls">
+        <div class="tt-daytabs" id="dayTabs" data-active="1" role="tablist" aria-label="Conference day">
+          <span class="tt-daytabs__thumb" aria-hidden="true"></span>
+          <button type="button" class="active" data-day="1" role="tab" aria-selected="true">Day 1<span class="sub">Fri, Aug 21</span></button>
+          <button type="button" data-day="2" role="tab" aria-selected="false">Day 2<span class="sub">Sat, Aug 22</span></button>
+        </div>
+
+        <span class="tt-controls__sep" aria-hidden="true"></span>
+
+        <div class="tt-tracks" id="trackFilter" role="group" aria-label="Filter by room">
+          <button type="button" class="tt-chip active" data-track="all"><span class="tt-chip__dot"></span>All Rooms</button>
+          <button type="button" class="tt-chip" data-track="phoenix"><span class="tt-chip__dot"></span>Phoenix Hall</button>
+          <button type="button" class="tt-chip" data-track="dahlia1"><span class="tt-chip__dot"></span>Dahlia 1</button>
+          <button type="button" class="tt-chip" data-track="dahlia2"><span class="tt-chip__dot"></span>Dahlia 2</button>
+          <button type="button" class="tt-chip" data-track="ran"><span class="tt-chip__dot"></span>Ran</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- ═══════════ DAY 1 — Friday, Aug 21 ═══════════ -->
+    <div class="tt-day" data-day="1">
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-full">
+            <div class="tt-full__time">09:00 – 10:00 &nbsp;·&nbsp; 60 min</div>
+            <div class="tt-full__title">Registration &amp; Morning Coffee</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-full">
+            <div class="tt-full__time">10:00 – 10:15 &nbsp;·&nbsp; Phoenix Hall</div>
+            <div class="tt-full__title">Day 1 Opening</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-keynote">
+            <div class="tt-keynote__photo"><img src="assets/speaker-carol-willing.png" alt="Carol Willing" /></div>
+            <div class="tt-keynote__body">
+              <div class="tt-keynote__label">Keynote · Phoenix Hall</div>
+              <div class="tt-keynote__name">Carol Willing</div>
+              <div class="tt-keynote__role">Jupyter Core Developer &amp; Python Steering Council Member</div>
+              <div class="tt-keynote__topic">Talk topic: TBA</div>
+            </div>
+            <div class="tt-keynote__time">10:15 – 11:00<br />45 min</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot-heading"><span class="tt-slot-heading__time">11:15</span></div>
+        <div class="tt-slot">
+          <div class="tt-card" data-track="phoenix">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Phoenix Hall</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">Typing in the Wild: Gradual Types at Scale</div>
+            <div class="tt-card__time">11:15 – 11:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">AT</span><span class="tt-speaker-name">Aoi Tanaka</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia1">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 1</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Async All the Way Down: Structured Concurrency in asyncio</div>
+            <div class="tt-card__time">11:15 – 11:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">MW</span><span class="tt-speaker-name">Marcus Webb</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia2">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 2</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">Packaging in 2026: uv, Hatch, and the New Defaults</div>
+            <div class="tt-card__time">11:15 – 11:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">PI</span><span class="tt-speaker-name">Priya Iyer</span></div>
+          </div>
+          <div class="tt-card" data-track="ran">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Ran</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Testing Data Pipelines Without Losing Your Mind</div>
+            <div class="tt-card__time">11:15 – 11:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">KS</span><span class="tt-speaker-name">Kenji Sato</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot-heading"><span class="tt-slot-heading__time">12:00</span></div>
+        <div class="tt-slot">
+          <div class="tt-card" data-track="phoenix">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Phoenix Hall</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">From Notebook to Production: Shipping ML Safely</div>
+            <div class="tt-card__time">12:00 – 12:30 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">EN</span><span class="tt-speaker-name">Elena Novak</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia1">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 1</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">Django Ninja and the Future of Fast APIs</div>
+            <div class="tt-card__time">12:00 – 12:30 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">HK</span><span class="tt-speaker-name">Haruto Kobayashi</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia2">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 2</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Rewriting a Legacy Codebase, One Type Hint at a Time</div>
+            <div class="tt-card__time">12:00 – 12:30 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">FN</span><span class="tt-speaker-name">Fatima Noor</span></div>
+          </div>
+          <div class="tt-card" data-track="ran">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Ran</span>
+              <span class="tt-tag tt-tag--advanced">Advanced</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">What's New in CPython's Bytecode</div>
+            <div class="tt-card__time">12:00 – 12:30 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">RY</span><span class="tt-speaker-name">Ryo Yamada</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-full">
+            <div class="tt-full__time">12:30 – 13:30 &nbsp;·&nbsp; 60 min</div>
+            <div class="tt-full__title">Lunch</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot-heading"><span class="tt-slot-heading__time">13:30</span></div>
+        <div class="tt-slot">
+          <div class="tt-card" data-track="phoenix">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Phoenix Hall</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Building Accessible Web Apps with Python</div>
+            <div class="tt-card__time">13:30 – 14:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">SK</span><span class="tt-speaker-name">Sara Kim</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia1">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 1</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">Pydantic Models as the Center of Your Architecture</div>
+            <div class="tt-card__time">13:30 – 14:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">JW</span><span class="tt-speaker-name">Jonas Weber</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia2">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 2</span>
+              <span class="tt-tag tt-tag--advanced">Advanced</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">A Deep Dive into asyncio's Event Loop</div>
+            <div class="tt-card__time">13:30 – 14:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">MC</span><span class="tt-speaker-name">Mei Chen</span></div>
+          </div>
+          <div class="tt-card" data-track="ran">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Ran</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">From Zero to Sprint: Contributing to CPython</div>
+            <div class="tt-card__time">13:30 – 14:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">DE</span><span class="tt-speaker-name">Daichi Endo</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot-heading"><span class="tt-slot-heading__time">14:15</span></div>
+        <div class="tt-slot">
+          <div class="tt-card" data-track="phoenix">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Phoenix Hall</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">The Sense of Style: A Talk on Coding Aesthetics</div>
+            <div class="tt-card__time">14:15 – 14:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">NF</span><span class="tt-speaker-name">Nina Fischer</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia1">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 1</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">GraphQL vs REST vs gRPC in 2026</div>
+            <div class="tt-card__time">14:15 – 14:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">WA</span><span class="tt-speaker-name">Wataru Abe</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia2">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 2</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Observability for Data Engineers</div>
+            <div class="tt-card__time">14:15 – 14:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">GO</span><span class="tt-speaker-name">Grace Oduya</span></div>
+          </div>
+          <div class="tt-card" data-track="ran">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Ran</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">MicroPython on the Raspberry Pi Pico W</div>
+            <div class="tt-card__time">14:15 – 14:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">SF</span><span class="tt-speaker-name">Shota Fujimoto</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-full">
+            <div class="tt-full__time">15:00 – 15:30 &nbsp;·&nbsp; 30 min</div>
+            <div class="tt-full__title">Coffee Break</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot-heading"><span class="tt-slot-heading__time">15:30</span></div>
+        <div class="tt-slot">
+          <div class="tt-card" data-track="phoenix">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Phoenix Hall</span>
+              <span class="tt-tag tt-tag--advanced">Advanced</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Free-Threaded Python: Living Without the GIL</div>
+            <div class="tt-card__time">15:30 – 16:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">LM</span><span class="tt-speaker-name">Leo Martins</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia1">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 1</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">Designing APIs Developers Actually Enjoy</div>
+            <div class="tt-card__time">15:30 – 16:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">YN</span><span class="tt-speaker-name">Yui Nakagawa</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia2">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 2</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">LLM Agents in Production: Lessons Learned</div>
+            <div class="tt-card__time">15:30 – 16:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">AM</span><span class="tt-speaker-name">Arjun Mehta</span></div>
+          </div>
+          <div class="tt-card" data-track="ran">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Ran</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">Property-Based Testing with Hypothesis</div>
+            <div class="tt-card__time">15:30 – 16:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">CD</span><span class="tt-speaker-name">Chloe Dubois</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot-heading"><span class="tt-slot-heading__time">16:15</span></div>
+        <div class="tt-slot">
+          <div class="tt-card" data-track="phoenix">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Phoenix Hall</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">Immutable Data Structures and Robust System Design</div>
+            <div class="tt-card__time">16:15 – 16:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">SY</span><span class="tt-speaker-name">Sana Yoshida</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia1">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 1</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">ReactPy: Building UI in Pure Python</div>
+            <div class="tt-card__time">16:15 – 16:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">TB</span><span class="tt-speaker-name">Tom Becker</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia2">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 2</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Vector Databases 101</div>
+            <div class="tt-card__time">16:15 – 16:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">HI</span><span class="tt-speaker-name">Hana Ito</span></div>
+          </div>
+          <div class="tt-card" data-track="ran">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Ran</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">Debugging Production Incidents with structlog</div>
+            <div class="tt-card__time">16:15 – 16:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">VR</span><span class="tt-speaker-name">Victor Reyes</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-full">
+            <div class="tt-full__time">17:00 – 17:40 &nbsp;·&nbsp; Phoenix Hall</div>
+            <div class="tt-full__title">Lightning Talks</div>
+            <div class="tt-full__sub">Five-minute talks from the community — sign up on-site.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-full">
+            <div class="tt-full__time">17:45 – 18:00 &nbsp;·&nbsp; Phoenix Hall</div>
+            <div class="tt-full__title">Day 1 Closing</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══════════ DAY 2 — Saturday, Aug 22 ═══════════ -->
+    <div class="tt-day" data-day="2" hidden>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-full">
+            <div class="tt-full__time">09:30 – 10:00 &nbsp;·&nbsp; 30 min</div>
+            <div class="tt-full__title">Registration &amp; Morning Coffee</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-full">
+            <div class="tt-full__time">10:00 – 10:15 &nbsp;·&nbsp; Phoenix Hall</div>
+            <div class="tt-full__title">Day 2 Opening</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-keynote">
+            <div class="tt-keynote__photo"><img src="assets/speaker-takashi-kitao.png" alt="Takashi Kitao" /></div>
+            <div class="tt-keynote__body">
+              <div class="tt-keynote__label">Keynote · Phoenix Hall</div>
+              <div class="tt-keynote__name">Takashi Kitao</div>
+              <div class="tt-keynote__role">Software Engineer &amp; Creator of Pyxel</div>
+              <div class="tt-keynote__topic">Talk topic: TBA</div>
+            </div>
+            <div class="tt-keynote__time">10:15 – 11:00<br />45 min</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot-heading"><span class="tt-slot-heading__time">11:15</span></div>
+        <div class="tt-slot">
+          <div class="tt-card" data-track="phoenix">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Phoenix Hall</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">How Big Can Python Integers *Really* Get?</div>
+            <div class="tt-card__time">11:15 – 11:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">EK</span><span class="tt-speaker-name">Emi Kondo</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia1">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 1</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">FastAPI's Magic, Explained via gRPC/Connect RPC</div>
+            <div class="tt-card__time">11:15 – 11:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">KP</span><span class="tt-speaker-name">Karan Patel</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia2">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 2</span>
+              <span class="tt-tag tt-tag--advanced">Advanced</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Crafting Your Own NumPy: Do More in C++ and Make It Python</div>
+            <div class="tt-card__time">11:15 – 11:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">RA</span><span class="tt-speaker-name">Rina Aoki</span></div>
+          </div>
+          <div class="tt-card" data-track="ran">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Ran</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">Five Years' Worth of Tech Debt, Paid Off at Once</div>
+            <div class="tt-card__time">11:15 – 11:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">FB</span><span class="tt-speaker-name">Felix Braun</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot-heading"><span class="tt-slot-heading__time">12:00</span></div>
+        <div class="tt-slot">
+          <div class="tt-card" data-track="phoenix">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Phoenix Hall</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Extracting Structured Data from LLMs with LangChain and Pydantic</div>
+            <div class="tt-card__time">12:00 – 12:30 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">MH</span><span class="tt-speaker-name">Miki Handa</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia1">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 1</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">MLOps' Common Pitfalls, and How gokart Solves Them</div>
+            <div class="tt-card__time">12:00 – 12:30 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">OC</span><span class="tt-speaker-name">Owen Clarke</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia2">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 2</span>
+              <span class="tt-tag tt-tag--advanced">Advanced</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">An Overview of the Optimization Pipeline in CPython 3.13+</div>
+            <div class="tt-card__time">12:00 – 12:30 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">SU</span><span class="tt-speaker-name">Sora Ueda</span></div>
+          </div>
+          <div class="tt-card" data-track="ran">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Ran</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">AI-Powered Automatic Replies in Customer Support</div>
+            <div class="tt-card__time">12:00 – 12:30 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">IZ</span><span class="tt-speaker-name">Ivy Zhang</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-full">
+            <div class="tt-full__time">12:30 – 13:30 &nbsp;·&nbsp; 60 min</div>
+            <div class="tt-full__title">Lunch</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot-heading"><span class="tt-slot-heading__time">13:30</span></div>
+        <div class="tt-slot">
+          <div class="tt-card" data-track="phoenix">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Phoenix Hall</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">A Practical Pytest Introduction: Keeping Your App Out of Legacy Code</div>
+            <div class="tt-card__time">13:30 – 14:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">RM</span><span class="tt-speaker-name">Riko Matsuda</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia1">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 1</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">FireDucks: A Drop-in Accelerator for Pandas</div>
+            <div class="tt-card__time">13:30 – 14:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">YO</span><span class="tt-speaker-name">Yoshiki Ohno</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia2">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 2</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Fun with Microcontrollers: Building a Digital Sundial in Python</div>
+            <div class="tt-card__time">13:30 – 14:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">SI</span><span class="tt-speaker-name">Scott Irwin</span></div>
+          </div>
+          <div class="tt-card" data-track="ran">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Ran</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Crimes with the Python Syntax</div>
+            <div class="tt-card__time">13:30 – 14:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">TS</span><span class="tt-speaker-name">Tushar Sadhwani</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot-heading"><span class="tt-slot-heading__time">14:15</span></div>
+        <div class="tt-slot">
+          <div class="tt-card" data-track="phoenix">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Phoenix Hall</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">The Basics of Network Analysis in Python, and Community Success</div>
+            <div class="tt-card__time">14:15 – 14:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">HK</span><span class="tt-speaker-name">Higuchi Kokoro</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia1">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 1</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Unlocking the Power of Python's Collections Module</div>
+            <div class="tt-card__time">14:15 – 14:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">IC</span><span class="tt-speaker-name">Italo Carvalho</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia2">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 2</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">PEP 723 and the World Inline Script Metadata Opens Up</div>
+            <div class="tt-card__time">14:15 – 14:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">NK</span><span class="tt-speaker-name">Nikki Kobayashi</span></div>
+          </div>
+          <div class="tt-card" data-track="ran">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Ran</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">Building a Low-Cost In-House RAG Chatbot</div>
+            <div class="tt-card__time">14:15 – 14:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">TN</span><span class="tt-speaker-name">Takanobu Nozawa</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-full">
+            <div class="tt-full__time">15:00 – 15:30 &nbsp;·&nbsp; 30 min</div>
+            <div class="tt-full__title">Coffee Break</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot-heading"><span class="tt-slot-heading__time">15:30</span></div>
+        <div class="tt-slot">
+          <div class="tt-card" data-track="phoenix">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Phoenix Hall</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">Pydantic × Database API: Building Turu-py</div>
+            <div class="tt-card__time">15:30 – 16:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">YS</span><span class="tt-speaker-name">Yassun Shimizu</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia1">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 1</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">Python HTTP Client Tooling, Compared</div>
+            <div class="tt-card__time">15:30 – 16:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">SO</span><span class="tt-speaker-name">Satoshi Ogawa</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia2">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 2</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Python-Powered "Cyber Security": Tools, Techniques &amp; Automation</div>
+            <div class="tt-card__time">15:30 – 16:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">ND</span><span class="tt-speaker-name">Nirmal Dahal</span></div>
+          </div>
+          <div class="tt-card" data-track="ran">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Ran</span>
+              <span class="tt-tag tt-tag--advanced">Advanced</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Unlocking the Parallel Universe: Subinterpreters &amp; Free-Threading in 3.13</div>
+            <div class="tt-card__time">15:30 – 16:00 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">AS</span><span class="tt-speaker-name">Anthony Shaw</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot-heading"><span class="tt-slot-heading__time">16:15</span></div>
+        <div class="tt-slot">
+          <div class="tt-card" data-track="phoenix">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Phoenix Hall</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">FastAPI's async def vs def: When to Use Which</div>
+            <div class="tt-card__time">16:15 – 16:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">SS</span><span class="tt-speaker-name">Shun Sasaki</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia1">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 1</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">JP</span>
+            </div>
+            <div class="tt-card__title">Getting Started with MicroPython on the Raspberry Pi Pico W</div>
+            <div class="tt-card__time">16:15 – 16:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">SN</span><span class="tt-speaker-name">Sousuke Nakamura</span></div>
+          </div>
+          <div class="tt-card" data-track="dahlia2">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Dahlia 2</span>
+              <span class="tt-tag tt-tag--beginner">Beginner</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">Building Accessible Web Experiences with Python</div>
+            <div class="tt-card__time">16:15 – 16:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">KV</span><span class="tt-speaker-name">Khushboo Verma</span></div>
+          </div>
+          <div class="tt-card" data-track="ran">
+            <div class="tt-card__tags">
+              <span class="tt-tag tt-tag--room"><span class="tt-dot"></span>Ran</span>
+              <span class="tt-tag tt-tag--intermediate">Intermediate</span>
+              <span class="tt-tag tt-tag--lang">EN</span>
+            </div>
+            <div class="tt-card__title">MLOps in Mercari's Trust &amp; Safety ML Team</div>
+            <div class="tt-card__time">16:15 – 16:45 · 30 min</div>
+            <div class="tt-card__speaker"><span class="tt-avatar">CJ</span><span class="tt-speaker-name">Calvin Janitra</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-full">
+            <div class="tt-full__time">17:00 – 17:40 &nbsp;·&nbsp; Phoenix Hall</div>
+            <div class="tt-full__title">Lightning Talks</div>
+            <div class="tt-full__sub">Five-minute talks from the community — sign up on-site.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-full">
+            <div class="tt-full__time">17:45 – 18:00 &nbsp;·&nbsp; Phoenix Hall</div>
+            <div class="tt-full__title">Day 2 Closing</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-slot-wrap">
+        <div class="tt-slot">
+          <div class="tt-full tt-full--party">
+            <div class="tt-full__time">18:30 – 21:00</div>
+            <div class="tt-full__title">Conference Party 🎉</div>
+            <div class="tt-full__sub">Celebrate two great days with food, drinks, and the community.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Also happening — same on both days, so it lives outside the Day 1/Day 2 tabs -->
+    <div class="tt-extra">
+      <p class="tt-extra__label">Also at PyCon JP 2026</p>
+
+      <div class="venue-card">
+        <div class="venue-card__icon">
+          <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg"><path d="M160-120v-80h80v-480q0-33 23.5-56.5T320-760h480v80H320v480h360v-360h80v440H160Zm560-560v-120h80v120h120v80H800v120h-80v-120H600v-80h120ZM240-360h320v-80H240v80Zm0 120h240v-80H240v80Z"/></svg>
+        </div>
+        <div>
+          <p class="venue-card__label">Poster Session &nbsp;·&nbsp; Day 1 &amp; Day 2, 15:00–15:30</p>
+          <strong class="venue-card__name">Foyer, International Conference Center Hiroshima</strong>
+          <p class="venue-card__desc">Present your project, research, or library in a casual, one-on-one format during the afternoon coffee break — held identically on both Conference Days, so drop by whichever suits your schedule.</p>
+        </div>
+        <a href="#" class="venue-card__cta">Submit a poster →</a>
+      </div>
+
+      <div class="venue-card">
+        <div class="venue-card__icon">
+          <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg"><path d="M480-480q33 0 56.5-23.5T560-560q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560q0 33 23.5 56.5T480-480ZM480-80Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Z"/></svg>
+        </div>
+        <div>
+          <p class="venue-card__label">Sprint Day &nbsp;·&nbsp; Aug 23</p>
+          <strong class="venue-card__name">Hiroshima University, Higashi-Senda Campus</strong>
+          <p class="venue-card__desc">A hands-on, contribution-focused day separate from the main Conference Days — bring a laptop and help ship real Python projects. Runs on its own schedule.</p>
+        </div>
+        <a href="index.html#events" class="venue-card__cta">Learn more →</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Wave blending into the footer's navy background — same illustration used site-wide -->
+<div class="section-timetable__wave" aria-hidden="true" style="background:#fff8f6; overflow:hidden; position:static; margin-bottom:-2px;">
+  <img src="assets/timetable-footer-illustration.svg" alt="" style="transform:scaleY(1.14); transform-origin:top;" />
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <img src="assets/footer-logo.svg" alt="PyCon JP 2026" />
+        </div>
+        <p class="footer-tagline">Bringing Python people together.</p>
+        <div class="footer-social">
+          <a href="#" aria-label="X (Twitter)">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.9 2H22l-7.6 8.7L23 22h-6.9l-5.4-7-6.2 7H1.3l8.1-9.3L1 2h7l4.9 6.5L18.9 2zm-2.4 18h1.9L7.6 4H5.6l10.9 16z"/></svg>
+          </a>
+          <a href="#" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2c2.72 0 3.06.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.21.6 1.77 1.16.51.5.9 1.1 1.16 1.77.25.64.42 1.37.47 2.43.05 1.06.06 1.4.06 4.12s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43a4.93 4.93 0 0 1-1.16 1.77c-.5.51-1.1.9-1.77 1.16-.64.25-1.37.42-2.43.47-1.06.05-1.4.06-4.12.06s-3.06-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.93 4.93 0 0 1-1.77-1.16 4.93 4.93 0 0 1-1.16-1.77c-.25-.64-.42-1.37-.47-2.43C2.01 15.06 2 14.72 2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.21 1.16-1.77.5-.51 1.1-.9 1.77-1.16.64-.25 1.37-.42 2.43-.47C8.94 2.01 9.28 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.25A3.25 3.25 0 1 1 12 8.75a3.25 3.25 0 0 1 0 6.5zM17.5 6.25a1.17 1.17 0 1 1 0 2.34 1.17 1.17 0 0 1 0-2.34z"/></svg>
+          </a>
+          <a href="#" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.5 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.55.46A2.78 2.78 0 0 0 1.5 6.42 29 29 0 0 0 1 11.75a29 29 0 0 0 .5 5.33 2.78 2.78 0 0 0 1.95 1.96C5.12 19.5 12 19.5 12 19.5s6.88 0 8.55-.46a2.78 2.78 0 0 0 1.95-1.96 29 29 0 0 0 .5-5.33 29 29 0 0 0-.5-5.33zM9.75 15.02V8.48l5.75 3.27z"/></svg>
+          </a>
+          <a href="#" aria-label="Official Blog">
+            <svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg"><path d="M143.5-143.5Q120-167 120-200t23.5-56.5Q167-280 200-280t56.5 23.5Q280-233 280-200t-23.5 56.5Q233-120 200-120t-56.5-23.5ZM680-120q0-117-44-218.5T516-516q-76-76-177.5-120T120-680v-120q142 0 265 53t216 146q93 93 146 216t53 265H680Zm-240 0q0-67-25-124.5T346-346q-44-44-101.5-69T120-440v-120q92 0 171.5 34.5T431-431q60 60 94.5 139.5T560-120H440Z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-nav">
+        <div class="footer-col">
+          <h4>Overview.</h4>
+          <ul class="footer-links">
+            <li><a href="index.html#about">Overview</a></li>
+            <li><a href="index.html#keynote">Keynotes</a></li>
+            <li><a href="#">Invited Talk</a></li>
+            <li><a href="index.html#about">What is PyCon JP?</a></li>
+            <li><a href="index.html#about">Organizers</a></li>
+            <li><a href="index.html#coc">Code of Conduct</a></li>
+            <li><a href="#">Logo</a></li>
+            <li><a href="#">Communities</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Attend.</h4>
+          <ul class="footer-links">
+            <li><a href="index.html#tickets">Tickets</a></li>
+            <li><a href="#">Childcare</a></li>
+            <li><a href="#">Travel Grants</a></li>
+            <li><a href="#">Lunch</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Events.</h4>
+          <ul class="footer-links">
+            <li><a href="#">Related Events</a></li>
+            <li><a href="index.html#events">Events</a></li>
+            <li><a href="#">Sprint</a></li>
+            <li><a href="#">Parties</a></li>
+            <li><a href="#">Okonomi Talk (LT)</a></li>
+            <li><a href="#">Ask The Speaker</a></li>
+            <li><a href="#">Translation App</a></li>
+            <li><a href="#">Program App</a></li>
+            <li><a href="#">Session App</a></li>
+            <li><a href="#">Open Space</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Sponsor.</h4>
+          <ul class="footer-links">
+            <li><a href="index.html#sponsors">Sponsors</a></li>
+            <li><a href="index.html#sponsors">Why Sponsor?</a></li>
+            <li><a href="#" target="_blank" rel="noopener">Prospectus ↗</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Venue.</h4>
+          <ul class="footer-links">
+            <li><a href="index.html#venue">Access</a></li>
+            <li><a href="index.html#venue">Hiroshima</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-illustration" aria-hidden="true">
+    <img src="assets/footer-illustration.svg" alt="" />
+  </div>
+
+  <div class="container">
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 PyCon JP Association. All rights reserved.</span>
+      <span class="footer-credit">Designed with ♡ by <a href="https://daksh.design" target="_blank" rel="noopener">daksh.design</a></span>
+      <div class="footer-legal">
+        <a href="#">PyCon JP Association</a>
+        <span class="footer-legal-sep">|</span>
+        <a href="#">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Sticky nav after scrolling past the header nav
+  const nav = document.getElementById('mainNav');
+  const navPlaceholder = document.getElementById('navPlaceholder');
+
+  function updateNavSticky() {
+    const navHeight = nav.classList.contains('nav--sticky')
+      ? parseFloat(navPlaceholder.style.height) || nav.offsetHeight
+      : nav.offsetHeight;
+    const shouldStick = window.scrollY > navHeight;
+    if (shouldStick && !nav.classList.contains('nav--sticky')) {
+      navPlaceholder.style.height = `${nav.offsetHeight}px`;
+      nav.classList.add('nav--sticky');
+    } else if (!shouldStick && nav.classList.contains('nav--sticky')) {
+      nav.classList.remove('nav--sticky');
+      navPlaceholder.style.height = '0';
+    }
+  }
+  window.addEventListener('scroll', updateNavSticky, { passive: true });
+  updateNavSticky();
+
+  // ─── Scroll progress indicator ────────────────────────────────────
+  (function () {
+    const bar = document.getElementById('scrollProgress');
+    if (!bar) return;
+    let ticking = false;
+    function update() {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      const p = max > 0 ? h.scrollTop / max : 0;
+      bar.style.transform = 'scaleX(' + p + ')';
+      ticking = false;
+    }
+    window.addEventListener('scroll', () => {
+      if (!ticking) { requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+    update();
+  })();
+
+  // ─── Language pill toggle (EN / JP) ───────────────────────────────
+  (function () {
+    const toggle = document.getElementById('langToggle');
+    if (!toggle) return;
+    const buttons = toggle.querySelectorAll('button');
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains('active')) return;
+        toggle.dataset.active = btn.dataset.lang;
+        buttons.forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', String(on));
+        });
+      });
+    });
+  })();
+
+  // ─── Mobile menu (hamburger) ──────────────────────────────────────
+  (function () {
+    const hamburger = document.getElementById('navHamburger');
+    const menu = document.getElementById('navMobileMenu');
+    if (!hamburger || !menu) return;
+
+    function closeMenu() {
+      nav.classList.remove('nav--menu-open');
+      document.body.style.overflow = '';
+      hamburger.setAttribute('aria-expanded', 'false');
+      hamburger.setAttribute('aria-label', 'Open menu');
+      updateNavSticky();
+    }
+    function openMenu() {
+      if (!nav.classList.contains('nav--sticky')) {
+        navPlaceholder.style.height = `${nav.offsetHeight}px`;
+      }
+      nav.classList.add('nav--menu-open');
+      document.body.style.overflow = 'hidden';
+      hamburger.setAttribute('aria-expanded', 'true');
+      hamburger.setAttribute('aria-label', 'Close menu');
+    }
+
+    hamburger.addEventListener('click', () => {
+      nav.classList.contains('nav--menu-open') ? closeMenu() : openMenu();
+    });
+    menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+    document.addEventListener('click', (e) => {
+      if (!nav.contains(e.target) && !menu.contains(e.target)) closeMenu();
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+    window.addEventListener('resize', () => { if (window.innerWidth > 880) closeMenu(); });
+  })();
+
+  // ─── Day tabs (Day 1 / Day 2) ──────────────────────────────────────
+  (function () {
+    const tabs = document.getElementById('dayTabs');
+    const days = document.querySelectorAll('.tt-day');
+    if (!tabs) return;
+    const buttons = tabs.querySelectorAll('button');
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains('active')) return;
+        const day = btn.dataset.day;
+        tabs.dataset.active = day;
+        buttons.forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-selected', String(on));
+        });
+        days.forEach((panel) => {
+          panel.hidden = panel.dataset.day !== day;
+        });
+      });
+    });
+  })();
+
+  // ─── Track filter chips ────────────────────────────────────────────
+  (function () {
+    const group = document.getElementById('trackFilter');
+    if (!group) return;
+    const chips = group.querySelectorAll('.tt-chip');
+    const slotWraps = document.querySelectorAll('.tt-slot-wrap');
+
+    function applyFilter(track) {
+      slotWraps.forEach((wrap) => {
+        const cards = wrap.querySelectorAll('.tt-card');
+        if (!cards.length) return; // full-width / keynote blocks always stay visible
+        let visibleCount = 0;
+        cards.forEach((card) => {
+          const show = track === 'all' || card.dataset.track === track;
+          card.classList.toggle('is-hidden', !show);
+          if (show) visibleCount++;
+        });
+        wrap.classList.toggle('is-empty', visibleCount === 0);
+      });
+    }
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        if (chip.classList.contains('active')) return;
+        chips.forEach((c) => c.classList.toggle('active', c === chip));
+        applyFilter(chip.dataset.track);
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>
