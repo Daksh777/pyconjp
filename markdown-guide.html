@@ -201,16 +201,16 @@
       background: var(--navy);
       overflow: hidden;
     }
-    /* Nav on the navy band needs light text + an all-white logo */
-    .doc-header .nav:not(.nav--sticky) .nav__logo img { filter: brightness(0) invert(1); }
-    .doc-header .nav:not(.nav--sticky) .nav__links a,
-    .doc-header .nav:not(.nav--sticky) .nav__hamburger-line { color: #fff; }
-    .doc-header .nav:not(.nav--sticky) .nav__links a { color: rgba(255,255,255,0.92); }
-    .doc-header .nav:not(.nav--sticky) .nav__hamburger-line { background: #fff; }
-    .doc-header .nav:not(.nav--sticky) .nav__lang { background: rgba(255,255,255,0.14); }
-    .doc-header .nav:not(.nav--sticky) .nav__lang button { color: rgba(255,255,255,0.7); }
-    .doc-header .nav:not(.nav--sticky) .nav__lang button.active { color: #fff; }
-    .doc-header .nav:not(.nav--sticky) .nav__lang-thumb { background: var(--red); }
+    /* Nav on the navy band needs light text + an all-white logo.
+       :not(.nav--menu-open) so the open mobile menu — a white panel — keeps
+       the default dark logo/hamburger instead of an invisible white-on-white. */
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__logo img { filter: brightness(0) invert(1); }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__hamburger-line { background: #fff; }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__links a { color: rgba(255,255,255,0.92); }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__lang { background: rgba(255,255,255,0.14); }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__lang button { color: rgba(255,255,255,0.7); }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__lang button.active { color: #fff; }
+    .doc-header .nav:not(.nav--sticky):not(.nav--menu-open) .nav__lang-thumb { background: var(--red); }
 
     .doc-header__inner {
       position: relative;
@@ -284,8 +284,12 @@
     /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        PROSE — how rendered Markdown looks
        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-    .prose { max-width: 760px; }
+    /* min-width:0 lets this grid/flex item shrink below its content's
+       intrinsic width, so wide <pre> blocks scroll internally instead of
+       stretching the column past the viewport (horizontal-scroll bug). */
+    .prose { max-width: 760px; min-width: 0; }
     .prose > * + * { margin-top: 20px; }
+    .prose pre { max-width: 100%; }
 
     /* Headings */
     .prose h1 {
@@ -952,7 +956,7 @@
     .nav__mobile-social svg { width: 17px; height: 17px; fill: var(--navy); }
 
     @media (max-width: 960px) {
-      .doc-layout { grid-template-columns: 1fr; gap: 0; padding: 48px 32px 80px; }
+      .doc-layout { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 48px 32px 80px; }
       .toc { display: none; }
       footer .container { padding: 0 32px; }
     }
@@ -1010,15 +1014,39 @@
 
     @media (max-width: 760px) {
       .doc-header__inner { padding: 40px 24px 72px; }
+      .doc-header p { font-size: 17px; }
       .prose h1 { font-size: 32px; }
       .prose h2 { font-size: 26px; margin-top: 52px; }
       .prose h3 { font-size: 21px; }
+      /* The hover-only anchor sits at left:-26px; on touch it never shows and
+         would push the page wider than the viewport, so drop it entirely. */
+      .prose h2 .anchor,
+      .prose h3 .anchor,
+      .prose h4 .anchor { display: none; }
+      /* Long fenced code / diff lines scroll instead of stretching the page */
+      .prose pre code { font-size: 13px; }
+      .prose summary { font-size: 16px; }
+    }
+
+    @media (max-width: 560px) {
+      /* Term / definition read better stacked than in a 2-column grid */
+      .prose dl { grid-template-columns: 1fr; gap: 2px 0; }
+      .prose dd { margin-bottom: 14px; }
+      .prose dd:last-child { margin-bottom: 0; }
+      /* Keep the full-width CTA and stacked buttons comfortable to tap */
+      .prose .btn-row { width: 100%; }
+      .prose .btn-row .md-btn { flex: 1 1 auto; justify-content: center; }
     }
 
     @media (max-width: 480px) {
       .doc-layout { padding: 40px 20px 64px; }
       footer .container { padding: 0 20px; }
       .prose p, .prose li { font-size: 16px; }
+      .prose h1 { font-size: 28px; }
+      .prose h2 { font-size: 23px; }
+      .prose blockquote,
+      .admonition { padding-left: 16px; padding-right: 16px; }
+      .prose .math { font-size: 18px; }
     }
   </style>
 </head>
