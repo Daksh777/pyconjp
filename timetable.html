@@ -389,12 +389,10 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      transition: border-color .18s, box-shadow .18s, transform .18s, opacity .18s;
+      transition: border-color .18s ease, opacity .18s ease;
     }
     .tt-card:hover {
       border-color: var(--red);
-      box-shadow: 0 8px 24px rgba(225,54,62,0.1);
-      transform: translateY(-2px);
     }
     .tt-card.is-hidden { display: none; }
 
