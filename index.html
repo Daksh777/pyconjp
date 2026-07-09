@@ -470,10 +470,10 @@
     }
 
     .speakers-grid {
-      max-width: 1040px;
+      max-width: 720px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 28px;
     }
     .speaker-card {
@@ -491,10 +491,13 @@
       margin-bottom: 20px;
     }
     .speaker-avatar {
+      box-sizing: border-box;
       width: 132px;
       height: 132px;
       border-radius: 50%;
       background: #E8B4B1;
+      border: 5px solid #fff;
+      box-shadow: 0 4px 18px rgba(26,49,86,0.14);
       flex-shrink: 0;
       display: flex;
       align-items: center;
@@ -511,7 +514,7 @@
       height: 48.6px;
       border-radius: 50%;
       background: #fff;
-      border: 0.5px solid var(--red);
+      box-shadow: 0 3px 10px rgba(26,49,86,0.18);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1193,7 +1196,6 @@
     @media (max-width: 960px) {
       .container { padding: 0 32px; }
       footer .container { padding: 0 32px; }
-      .speakers-grid { grid-template-columns: repeat(2, 1fr); max-width: 720px; }
       .quicklinks-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
@@ -1417,11 +1419,11 @@
     .news-item:hover .news-title { transform: translateX(6px); }
 
     /* Speaker cards — lift + avatar zoom */
-    .speaker-card { transition: transform .3s cubic-bezier(.22,.61,.36,1), box-shadow .3s ease; }
+    .speaker-card { transition: transform .15s cubic-bezier(.22,.61,.36,1), box-shadow .15s ease; }
     .speaker-card:hover { transform: translateY(-5px); box-shadow: 0 16px 36px rgba(26,49,86,0.1); }
-    .speaker-avatar img { transition: transform .45s cubic-bezier(.22,.61,.36,1); }
+    .speaker-avatar img { transition: transform .2s cubic-bezier(.22,.61,.36,1); }
     .speaker-card:hover .speaker-avatar img { transform: scale(1.06); }
-    .speaker-leaf-badge { transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+    .speaker-leaf-badge { transition: transform .18s cubic-bezier(.34,1.56,.64,1); }
     .speaker-card:hover .speaker-leaf-badge { transform: rotate(-8deg) scale(1.08); }
 
     /* Sponsor logos — colour-in + gentle scale on hover */
@@ -1503,6 +1505,7 @@
       .reveal-ready .speaker-card.in .speaker-leaf-badge {
         opacity: 1;
         transform: rotate(0) scale(1);
+        transition: transform .18s cubic-bezier(.34,1.56,.64,1);
       }
       /* hover override still wins after reveal completes */
       .reveal-ready .speaker-card.in:hover .speaker-leaf-badge {
@@ -1729,30 +1732,6 @@
             <div class="speaker-info">
               <div class="speaker-name">Takashi Kitao</div>
               <div class="speaker-role">Software Engineer & Creator of Pyxel</div>
-              <hr class="speaker-divider" />
-              <div class="speaker-topic">Talk topic: TBA</div>
-            </div>
-          </div>
-
-          <!-- Speaker 3 -->
-          <div class="speaker-card">
-            <div class="speaker-photo-wrap">
-              <div class="speaker-avatar">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
-                </svg>
-              </div>
-              <div class="speaker-leaf-badge">
-                <div class="speaker-leaf-badge-inner">
-                  <svg viewBox="0 0 50 47" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M34.7065 0.0341122C34.7488 -0.00646888 34.8164 -0.0171004 34.8384 0.0372157C34.8454 0.0547257 34.8527 0.0841386 34.8503 0.102862C34.7872 0.587719 34.594 1.36467 34.496 1.86823C34.3536 2.63782 34.2519 3.41435 34.1912 4.19463C34.0304 6.27784 34.2208 8.33047 34.1121 10.4191C33.8609 15.2446 31.6448 19.483 28.7404 23.2469C28.4257 23.6547 28.095 24.0513 27.7587 24.4442C27.5695 24.6651 27.7754 24.8912 28.0104 24.72C28.679 24.2346 29.3627 23.7702 30.0605 23.3275C33.3119 21.2866 36.7414 20.0961 40.6018 20.1244C42.759 20.1403 44.9448 20.3813 47.0952 20.2158C47.4308 20.191 47.7656 20.1599 48.0998 20.1226C48.3187 20.0969 48.7691 20.0271 49.0079 20.0345C49.0474 20.0357 49.0942 20.0481 49.1194 20.0785C49.1483 20.1133 49.1227 20.1634 49.0926 20.1971C49.0012 20.299 48.8002 20.4592 48.7284 20.5209L47.8056 21.3116C47.0966 21.9301 46.4207 22.5855 45.7807 23.2751C44.6288 24.5336 43.4969 25.9949 42.3056 27.1911C39.855 29.6515 36.6629 31.2713 33.2694 31.9383C32.641 32.0626 32.0073 32.1586 31.3703 32.2255C31.2696 32.2359 31.1664 32.2453 31.062 32.2545C30.9097 32.2678 30.9087 32.5034 31.0603 32.5228C34.0478 32.9028 36.8668 34.1736 39.2318 36.0206C40.7636 37.2168 42.1638 38.5403 43.8016 39.5962C43.905 39.663 44.0281 39.7412 44.0682 39.8579C44.0753 39.8787 44.0651 39.9008 44.0464 39.9124C44.0393 39.9167 44.0315 39.9193 44.0232 39.92C43.5765 39.9573 42.9015 39.855 42.4357 39.8241C40.5929 39.7023 38.7509 40.0527 36.9183 40.2403C34.2371 40.5149 31.5981 40.3974 29.0597 39.4207C28.0759 39.0422 27.1678 38.6726 26.2901 38.1202C26.1959 38.0609 26.0869 38.1676 26.151 38.2587C27.5608 40.2626 27.7647 42.7506 28.2056 45.0862C28.2743 45.4491 28.3508 45.849 28.3726 46.2176C28.3776 46.2986 28.2596 46.3082 28.19 46.2666C27.9961 46.1505 27.6796 45.8779 27.5582 45.7838C27.1515 45.4618 26.7311 45.1579 26.298 44.8726C25.2261 44.1815 24.3468 43.7174 23.3115 42.932C21.0082 41.1496 19.3172 38.7039 18.4594 35.9352C18.3588 35.6103 17.923 35.5254 17.7183 35.797C15.3421 38.9501 13.4537 40.8815 10.0657 43.3034C9.72479 43.5472 9.35654 43.7923 9.00174 44.032C8.875 44.1177 8.71063 44.1244 8.57762 44.0489L7.2357 43.2867C6.95303 43.1261 6.96894 42.7127 7.26093 42.5698C10.0382 41.2106 12.4049 39.6889 14.574 37.3598C14.91 36.9991 15.2114 36.6511 15.5052 36.2971C15.7519 35.9997 15.4409 35.5766 15.0706 35.6871C12.9954 36.2987 10.8016 36.3899 8.6828 35.9523C8.16791 35.8468 7.66161 35.7032 7.16802 35.5226C5.50977 34.924 3.95358 34.0592 2.23566 33.6008C2.18612 33.5877 2.10652 33.5643 2.03415 33.5335C1.92599 33.4874 1.90974 33.3642 2.01051 33.3036C2.16464 33.211 2.41311 33.1351 2.53016 33.0863C2.83133 32.9621 3.12774 32.8269 3.41881 32.6806C5.6181 31.5842 7.4551 30.5388 9.87005 30.6535C10.0176 30.6605 10.0712 30.4699 9.9392 30.4037C7.02773 28.9424 4.77374 26.9243 3.28828 24.0068C2.60901 22.6729 2.16241 21.49 1.5537 20.1766C1.26861 19.5678 0.959174 18.9708 0.626129 18.3871C0.497263 18.1582 0.142941 17.5599 0.0115557 17.2716C-0.0131731 17.2173 0.00207172 17.1125 0.0568902 17.1359C0.711125 17.4158 1.71756 18.009 2.35603 18.2767C3.30406 18.6741 4.22539 18.9674 5.14884 19.3293C7.56651 20.2767 9.25524 21.2737 10.9066 22.8097C11.1545 23.0403 11.5349 22.7608 11.3841 22.4577C9.52726 18.7255 9.0097 14.4686 9.91821 10.4004C10.23 9.01081 10.7299 7.74113 11.0948 6.38355C11.3205 5.56513 11.5158 4.73864 11.6804 3.90581C11.7777 3.43202 11.882 2.90134 11.9899 2.4256C12.0025 2.37021 12.0226 2.36497 12.0598 2.35082C12.0714 2.34642 12.0845 2.34838 12.0939 2.35639C12.0981 2.3599 12.1012 2.36426 12.1032 2.3693C12.5254 3.45638 13.0827 5.10902 13.6253 6.09111C14.3364 7.34167 15.2565 8.50578 16.0398 9.71246C17.955 12.6632 19.1282 15.8802 19.4392 19.3922C19.47 19.74 19.9786 19.7702 20.0503 19.4285C21.109 14.3827 23.0219 10.2114 27.1998 6.53059C28.7097 5.20015 30.3721 4.1261 31.8361 2.86224C32.4507 2.33679 33.0392 1.78177 33.5997 1.19913C33.9361 0.849884 34.3536 0.373261 34.7065 0.0341122Z" fill="#fff"/>
-                </svg>
-                </div>
-              </div>
-            </div>
-            <div class="speaker-info">
-              <div class="speaker-name">Keynote Speaker</div>
-              <div class="speaker-role">To Be Announced</div>
               <hr class="speaker-divider" />
               <div class="speaker-topic">Talk topic: TBA</div>
             </div>
