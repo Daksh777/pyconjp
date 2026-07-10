@@ -87,6 +87,7 @@
       z-index: 10;
       display: grid;
       grid-template-columns: 1fr auto 1fr;
+      column-gap: 32px;
       align-items: center;
       padding: 20px 48px;
       width: 100%;
@@ -1081,7 +1082,7 @@
     .footer-social a:hover { background: rgba(255,255,255,0.14); }
     .footer-social svg { width: 16px; height: 16px; fill: rgba(255,255,255,0.85); }
 
-    @media (max-width: 900px) {
+    @media (max-width: 960px) {
       .footer-top { flex-direction: column; align-items: center; gap: 40px; text-align: center; }
       .footer-brand { display: flex; flex-direction: column; align-items: center; max-width: 320px; }
       .footer-social { justify-content: center; }
@@ -1202,7 +1203,14 @@
     /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        RESPONSIVE — nav collapses into hamburger
        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-    @media (max-width: 880px) {
+    @media (max-width: 1024px) {
+      /* Once the nav collapses, the page is effectively in compact mode —
+         the hero shouldn't force itself to fill the full viewport height,
+         which on portrait tablets (narrower width, similar or taller height
+         than desktop) strands the wave illustration far below the fold. */
+      .hero { min-height: auto; }
+      .hero__body { padding-bottom: 40px; }
+
       .nav {
         display: flex;
         align-items: center;
